@@ -9,31 +9,41 @@
 - Treat model responses, retrieved pages and pasted orders as untrusted data. Validate before use; render text, not remote HTML.
 - Do not make live API calls in automated tests. A live experiment requires task-specific user authorization.
 
-## Git workflow
+## Workflow: Fast Local Iteration vs. Final Publication
 
-- `main` is the stable branch. Work on `feature/<topic>` or `fix/<topic>`.
-- Never merge to `main`, enable auto-merge, or directly push feature changes to `main` without explicit owner approval for that change.
-- The initial repository bootstrap and initial stable import are authorized by the repository setup request; this is not permission for later merges.
-- Develop and test locally first. Do not push commits, branches, tags, or publish releases without explicit owner approval. Local commits are allowed.
-- Do not rewrite published history or force-push without explicit approval.
-- Use Conventional Commits: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `build`, or `ci`, with an optional scope.
-- Prepare reviewable commits/PRs with a concrete behavior summary, validation and known limitations.
+Distinguish between **active local development** and **final commit / publication to GitHub**:
+
+### 1. Active Local Development (Fast Mode)
+- Focus on fast execution: implement requested modules, UI adjustments, or bug fixes directly in the active working branch without unnecessary procedural overhead.
+- Do not create redundant intermediate backup branches for every minor tweak.
+- Do not run the full heavy test suite (`npm run test:all` or multi-second browser tests) or update `CHANGELOG.md` on every micro-edit or intermediate step.
+- Perform quick sanity/syntax verification (`npm run check` or targeted file syntax check) so the user can immediately reload the extension in Chrome (`chrome://extensions`) and test the result.
+- Keep responses concise and focused on how the user can test the change in the browser.
+
+### 2. Finalization & Pre-Push / Publication Mode (Full Validation)
+- Triggered only when a feature/fix is fully ready for committing, pushing to GitHub, opening a PR, or upon explicit user request:
+  - Run full test suite (`npm run check`, `npm test`, `npm run test:browser`).
+  - Add regression tests if state, provider, or module behavior was modified.
+  - Update `CHANGELOG.md` under `[Unreleased]`.
+  - Prepare a Conventional Commit (`feat`, `fix`, etc.) with a concise English message.
+  - Never push to GitHub, merge to `main`, or publish a release without explicit owner approval.
 
 ## Modules
 
 - Each substantial new feature belongs in its own folder under `src/modules/<feature>/`.
-- Add an English module README describing purpose, entry points, functions, dependencies, settings, network access, failure behavior and tests.
-- Register optional modules in the feature registry and provide an explicit settings toggle.
+- Add an English module README describing purpose, entry points, functions, dependencies, settings, network access, failure behavior and tests when finalizing a module.
+- Register optional modules in the feature registry (`src/core/modules.js`) and provide an explicit settings toggle.
+- Module-specific option sections, accordions, and prompt editors declare `data-module="<moduleId>"` to be conditionally toggled.
 - Disabled modules must not trigger API requests; disabling an active module must cancel or discard pending work and remove stale results.
 - Preserve existing behavior when migrating settings. Defaults for existing features remain enabled unless explicitly requested otherwise.
 - Local route editing and ordinary clipboard export must remain available when optional AI modules are off.
 - Do not add runtime remote scripts, a framework or a bundler solely to organize folders.
 
-## Validation and releases
+## Git rules
 
-- Run relevant unit/browser tests; document what was tested and whether API responses were mocked.
-- Verify manifest paths and script loading after moving files.
-- Add meaningful regression tests for state changes, cancellation, provider isolation and settings migrations.
-- Add an Unreleased changelog entry for user-visible or structural changes.
-- Keep `manifest.json` as the runtime version source of truth. Release version, changelog heading and annotated Git tag must agree.
-- Do not publish a release or tag unapproved work as stable. Follow `docs/RELEASING.md`.
+- `main` is the stable branch. Work on `feature/<topic>` or `fix/<topic>`.
+- Never merge to `main`, enable auto-merge, or directly push feature changes to `main` without explicit owner approval for that change.
+- Develop and test locally first. Do not push commits, branches, tags, or publish releases without explicit owner approval. Local commits are allowed.
+- Do not rewrite published history or force-push without explicit approval.
+- Use Conventional Commits: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `build`, or `ci`, with an optional scope.
+- Keep `manifest.json` as the runtime version source of truth. Release version, changelog heading and annotated Git tag must agree on releases.

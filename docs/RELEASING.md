@@ -1,9 +1,16 @@
 # Branches and releases
 
+## Workflow modes
+
+- **Local iteration**: During active development, quick syntax and manifest checks (`npm run check`) are sufficient so the owner can immediately test changes in the browser. Full test suites, changelog entries, and release commits can be deferred until work on a feature is complete.
+- **Commit and release**: Before pushing to remote, merging, or releasing, follow the full release procedure below.
+
+## Release procedure
+
 1. Start from the approved `main`: `git switch main && git pull --ff-only`.
 2. Create `feature/<topic>` or `fix/<topic>`. Keep unrelated work separate.
 3. Implement and document the change. Use Conventional Commits.
-4. Run unit and browser tests. No real API keys in tests or CI.
+4. Run full unit and browser tests (`npm run test:all`). No real API keys in tests or CI.
 5. Update the Unreleased changelog section. Test locally and wait for explicit owner approval before pushing or opening a PR.
 6. Wait for explicit owner approval before merging. A passing CI run is not approval.
 7. For an approved release, select a semantic version, update manifest/changelog, and validate the release commit.
