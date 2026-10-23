@@ -1,0 +1,44 @@
+# Dependencies and generated artifacts
+node_modules/
+dist/
+build/
+coverage/
+playwright-report/
+test-results/
+artifacts/
+.cache/
+*.log
+*.tsbuildinfo
+
+# Local secrets and browser state (never commit API keys)
+.env
+.env.*
+!.env.example
+secrets/
+credentials/
+*.pem
+*.key
+*.p12
+*.pfx
+*.crx
+*.keystore
+*storage-state*.json
+*storageState*.json
+chrome-profile/
+browser-profile/
+.local/
+
+# Backups and temporary files
+backups/
+*.zip
+*.bak
+*.tmp
+*.swp
+*~
+
+# OS and editor files
+.DS_Store
+._*
+Thumbs.db
+.idea/
+.vscode/

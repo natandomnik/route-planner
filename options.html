@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="pl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ustawienia — Trasa do Maps</title><link rel="stylesheet" href="popup.css"><script src="providers.js" defer></script><script src="settings.js" defer></script><script src="gemini.js" defer></script><script src="ai.js" defer></script><script src="hubs.js" defer></script><script src="options.js" defer></script></head>
+<body><main>
+<header><div><h1>Ustawienia</h1><p>Jak rozpoznawać punkty trasy?</p></div></header>
+<form id="settings-form">
+<fieldset><legend>Rozpoznawanie trasy</legend>
+<label class="mode-option"><input type="radio" name="mode" value="local" checked><span><strong>Tylko lokalnie</strong><small>Wbudowany kod. Bez klucza, bez internetu i bez opłat za API.</small></span></label>
+<label class="mode-option"><input type="radio" name="mode" value="ai"><span><strong>Lokalnie + AI na kliknięcie</strong><small>Najpierw parser lokalny. Przycisk „Rozpoznaj przez AI” uruchamia wybrany model.</small></span></label>
+</fieldset>
+<section id="ai-settings" hidden>
+<label class="setting-label" for="provider">Dostawca AI</label>
+<select class="setting-input" id="provider"></select>
+<p class="hint" id="provider-note"></p>
+<label class="setting-label" for="model">Model</label>
+<select class="setting-input" id="model"></select>
+<div id="custom-model-box" hidden><label class="setting-label" for="custom-model">Własny identyfikator modelu</label>
+<input class="setting-input" id="custom-model" maxlength="128" placeholder="Identyfikator z dokumentacji dostawcy">
+<p class="hint">Model tekstowy musi obsługiwać odpowiedzi JSON ze schematem. Dostępność sprawdzisz przyciskiem poniżej.</p></div>
+<label class="setting-label" id="api-key-label" for="api-key">Klucz API</label>
+<input class="setting-input" id="api-key" type="password" autocomplete="off" spellcheck="false" maxlength="512" placeholder="Wklej własny klucz API">
+<p class="hint">Klucz jest zapisywany lokalnie w profilu Chrome, bez synchronizacji. To nie jest szyfrowany sejf. Nie wpisuj klucza w plikach wtyczki.</p>
+<div class="connection-actions"><button id="test-connection" type="button" class="primary">Sprawdź połączenie</button></div>
+<p id="connection-status" class="connection-status" role="status" aria-live="polite"></p>
+<p class="hint">Testuje wybranego dostawcę, klucz i model, bez zapisywania zmian. Wysyła krótką przykładową trasę, bez danych Twojego zlecenia. Test zużywa niewielką liczbę tokenów API.</p>
+<button id="delete-key" type="button" class="text-button">Usuń klucz tego dostawcy</button>
+<p class="hint" id="provider-privacy"></p><p class="hint">Wklejony lub zaznaczony tekst jest najpierw analizowany lokalnie. AI działa dopiero po kliknięciu „Rozpoznaj przez AI” lub użyciu skrótu Ctrl / ⌘ + Enter. Dostawcę zmieniasz ręcznie; wtyczka nie przełącza go po błędzie. Wybranie OpenRouter Free Router pozwala tej usłudze dobrać darmowy model.</p>
+<a id="get-api-key" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Utwórz klucz API ↗</a>
+<label class="setting-label" for="hub-model">Model do sugestii obszarów A/B — Groq</label>
+<select id="hub-model" class="setting-input"><option value="openai/gpt-oss-120b">GPT-OSS 120B · dokładniejsza analiza</option><option value="openai/gpt-oss-20b">GPT-OSS 20B · szybszy</option></select>
+<p class="hint">Osobny model z wyszukiwaniem w sieci, korzysta z zapisanego klucza Groq. Zmiana nie wpływa na czyszczenie tekstu ani kopiowanie. Sugestie wskazują obszary poszukiwań, nie dostępnych kierowców.</p>
+<details><summary>Zasady doboru obszarów A/B</summary><textarea id="hub-prompt" class="prompt-preview" rows="12" readonly aria-label="Instrukcja doboru obszarów"></textarea></details>
+<details id="ai-instructions">
+<summary>Instrukcja dla AI — edytuj prompt</summary>
+<p>Twoja instrukcja zastępuje domyślną i obowiązuje dla wszystkich dostawców. Kliknij „Zapisz ustawienia”, aby zachować ją na kolejne uruchomienia.</p>
+<label class="sr-only" for="prompt-preview">Pełna instrukcja systemowa</label>
+<textarea id="prompt-preview" class="prompt-preview" maxlength="20000" rows="16" spellcheck="false"></textarea>
+<button id="reset-prompt" class="text-button" type="button">Przywróć instrukcję domyślną</button>
+<p id="prompt-status" class="hint" role="status"></p>
+<p class="hint">Model nadal musi zwracać JSON z polami points i warnings. Tekst trasy dostaje osobno. Test połączenia używa instrukcji aktualnie widocznej w tym polu.</p>
+<details><summary>Wymagany format odpowiedzi (JSON Schema)</summary><pre id="schema-preview" class="analysis-code"></pre></details>
+<p>Wtyczka sprawdza format odpowiedzi i pokazuje punkty do korekty. Nie sprawdza geograficznej poprawności kodów.</p>
+</details>
+</section>
+<p><a href="postal-lab.html" target="_blank" rel="noopener">Eksperyment: sprawdzanie kodów w sieci ↗</a></p>
+<p id="settings-status" role="status" aria-live="polite"></p>
+<button id="save-settings" type="submit" class="primary">Zapisz ustawienia</button>
+</form>
+</main></body></html>

@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Trasa do Maps — dla spedytora",
+  "version": "1.5.0",
+  "description": "Zamienia tekst zlecenia transportowego w edytowalne punkty trasy Google Maps.",
+  "minimum_chrome_version": "102",
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "clipboardWrite"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Trasa do Maps",
+    "default_popup": "popup.html"
+  },
+  "host_permissions": [
+    "https://generativelanguage.googleapis.com/*",
+    "https://api.openai.com/*",
+    "https://api.groq.com/*",
+    "https://openrouter.ai/*"
+  ],
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
+  }
+}
