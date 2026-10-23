@@ -27,11 +27,48 @@ const saveButton = document.getElementById('save-settings');
 const deleteButton = document.getElementById('delete-key');
 const connectionStatus = document.getElementById('connection-status');
 let connectionRun = 0, connectionController = null, loaded = false;
-let profiles = {}, selectedProvider = 'gemini';
+let profiles = {}, savedProfiles = {}, selectedProvider = 'gemini';
 for (const [id, provider] of Object.entries(AI_PROVIDERS)) providerInput.add(new Option(provider.name, id));
 function currentModel() { return (modelInput.value === 'custom' ? customModelInput.value : modelInput.value).trim(); }
 function captureProfile() {
-  if (loaded) profiles[selectedProvider] = {model: currentModel(), apiKey: keyInput.value.trim()};
+  if (loaded && selectedProvider && profiles[selectedProvider]) {
+    profiles[selectedProvider] = {model: currentModel(), apiKey: keyInput.value.trim()};
+  }
+}
+function maskApiKey(key) {
+  if (!key || typeof key !== 'string') return '';
+  const trimmed = key.trim();
+  if (!trimmed) return '';
+  if (trimmed.length <= 8) {
+    return trimmed.slice(0, 2) + '••••' + trimmed.slice(-2);
+  }
+  const prefixLen = trimmed.length >= 12 ? 6 : 4;
+  const suffixLen = 4;
+  return trimmed.slice(0, prefixLen) + '••••••••' + trimmed.slice(-suffixLen);
+}
+function updateSavedKeyPreview() {
+  const preview = document.getElementById('saved-key-preview');
+  if (!preview) return;
+  const provider = aiProvider(selectedProvider);
+  const savedKey = savedProfiles?.[selectedProvider]?.apiKey?.trim();
+  const currentKey = keyInput.value.trim();
+
+  if (savedKey) {
+    const masked = maskApiKey(savedKey);
+    if (currentKey && currentKey !== savedKey) {
+      preview.textContent = 'Zapisany klucz: ' + masked + ' (w polu wpisano nowy klucz — kliknij „Zapisz ustawienia”)';
+      preview.dataset.state = 'pending';
+    } else {
+      preview.textContent = 'Zapisany klucz: ' + masked;
+      preview.dataset.state = 'saved';
+    }
+  } else if (currentKey) {
+    preview.textContent = 'Nowy klucz: ' + maskApiKey(currentKey) + ' (niezapisany — kliknij „Zapisz ustawienia”)';
+    preview.dataset.state = 'pending';
+  } else {
+    preview.textContent = 'Brak zapisanego klucza dla: ' + provider.name;
+    preview.dataset.state = 'empty';
+  }
 }
 function currentSettings() {
   captureProfile();
@@ -40,7 +77,6 @@ function currentSettings() {
   return {mode: form.elements.mode.value, provider: selectedProvider, profiles, modules: currentModules(), hubModel: hubModelInput.value, hubProvider, customPrompt: promptInput.value === AI_ROUTE_PROMPT ? null : promptInput.value, ...profiles[selectedProvider]};
 }
 function updateHubModels() {
-  captureProfile();
   const currentVal = hubModelInput.value;
   const withKeys = Object.entries(AI_PROVIDERS).filter(([id]) => !!profiles[id]?.apiKey?.trim());
   const providersToShow = withKeys.length > 0 ? withKeys : Object.entries(AI_PROVIDERS);
@@ -91,6 +127,7 @@ function showProvider() {
   document.getElementById('api-key-label').textContent = 'Klucz API — ' + provider.name;
   const link = document.getElementById('get-api-key'); link.href = provider.keyUrl;
   link.textContent = 'Utwórz klucz — ' + provider.name + ' ↗';
+  updateSavedKeyPreview();
   showMode();
 }
 function showMode() {
@@ -109,7 +146,6 @@ function showMode() {
       }
     }
   }
-  updateHubModels();
   for (const input of [providerInput, modelInput, keyInput]) input.disabled = !loaded || !ai;
   customModelInput.disabled = !loaded || !ai || !custom;
   customModelInput.required = ai && custom;
@@ -130,7 +166,11 @@ function resetConnection() {
   connectionMessage(''); showMode();
 }
 providerInput.addEventListener('change', () => {
-  captureProfile(); selectedProvider = providerInput.value; resetConnection(); showProvider();
+  captureProfile();
+  selectedProvider = providerInput.value;
+  showProvider();
+  resetConnection();
+  updateHubModels();
 });
 promptInput.addEventListener('input', () => {
   resetConnection();
@@ -141,10 +181,14 @@ resetPromptButton.addEventListener('click', () => {
   promptStatus.textContent = 'Przywrócono instrukcję domyślną. Kliknij „Zapisz ustawienia”, aby ją zapamiętać.';
 });
 keyInput.addEventListener('input', () => {
-  captureProfile(); updateHubModels(); resetConnection();
+  captureProfile(); updateSavedKeyPreview(); updateHubModels(); resetConnection();
 });
-customModelInput.addEventListener('input', resetConnection);
-modelInput.addEventListener('change', resetConnection);
+customModelInput.addEventListener('input', () => {
+  captureProfile(); resetConnection();
+});
+modelInput.addEventListener('change', () => {
+  captureProfile(); showMode(); resetConnection();
+});
 form.querySelectorAll('input[name="mode"]').forEach(input => input.addEventListener('change', resetConnection));
 function validatePrompt() {
   if (!promptInput.value.trim()) throw new Error('Instrukcja AI nie może być pusta. Wpisz własną lub przywróć domyślną.');
@@ -183,13 +227,17 @@ testButton.addEventListener('click', async () => {
 });
 form.addEventListener('submit', async event => {
   event.preventDefault(); if (!loaded) return;
+  captureProfile();
   const settings = currentSettings();
   try {
     if (settings.modules.aiExtraction) validatePrompt();
     if (settings.mode === 'ai') validateSettings(settings);
     saveButton.disabled = true;
     await chrome.storage.local.set({routeSettings: {mode: settings.mode, provider: settings.provider, profiles: settings.profiles, customPrompt: settings.customPrompt, hubModel: settings.hubModel, hubProvider: settings.hubProvider, modules: settings.modules}});
+    savedProfiles = JSON.parse(JSON.stringify(settings.profiles));
     promptStatus.textContent = settings.customPrompt === null ? 'Zapisano instrukcję domyślną.' : 'Zapisano Twoją instrukcję — będzie używana przy każdej analizie AI.';
+    updateSavedKeyPreview();
+    updateHubModels();
     showMode();
     settingsStatus.textContent = 'Ustawienia zapisane. Będą użyte przy następnym rozpoznaniu trasy.';
   } catch (error) { settingsStatus.textContent = 'Nie udało się zapisać ustawień. ' + error.message; }
@@ -204,7 +252,9 @@ deleteButton.addEventListener('click', async () => {
     const mode = saved.provider === deletingProvider ? 'local' : saved.mode;
     await chrome.storage.local.set({routeSettings: {mode, provider: saved.provider, profiles: saved.profiles, customPrompt: saved.customPrompt, hubModel: saved.hubModel, hubProvider: saved.hubProvider, modules: saved.modules}});
     profiles[deletingProvider].apiKey = '';
+    savedProfiles[deletingProvider].apiKey = '';
     if (selectedProvider === deletingProvider) { keyInput.value = ''; form.elements.mode.value = 'local'; }
+    updateSavedKeyPreview();
     updateHubModels();
     showMode();
     settingsStatus.textContent = 'Usunięto klucz: ' + aiProvider(deletingProvider).name + '. Pozostałe klucze zachowano.';
@@ -216,11 +266,12 @@ deleteButton.addEventListener('click', async () => {
     const settings = await readRouteSettings();
     for (const [id, input] of moduleInputs) input.checked = settings.modules[id];
     hubModelInput.value = settings.hubModel;
-    updateHubModels();
     promptInput.value = getAiRoutePrompt(settings);
     promptStatus.textContent = settings.customPrompt === null ? 'Używana jest instrukcja domyślna.' : 'Używana jest Twoja zapisana instrukcja.';
-    profiles = settings.profiles; selectedProvider = settings.provider;
+    profiles = settings.profiles;
+    savedProfiles = JSON.parse(JSON.stringify(settings.profiles));
+    selectedProvider = settings.provider;
     providerInput.value = selectedProvider; form.elements.mode.value = settings.mode;
-    loaded = true; showProvider(); saveButton.disabled = false;
+    loaded = true; showProvider(); updateHubModels(); saveButton.disabled = false;
   } catch { settingsStatus.textContent = 'Nie udało się odczytać ustawień. Otwórz tę stronę ponownie.'; }
 })();

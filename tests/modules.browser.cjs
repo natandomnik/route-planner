@@ -51,6 +51,32 @@ const assert=require('node:assert/strict');const path=require('node:path');
  assert.ok(await page.locator('#ai-instructions').isHidden());
  assert.equal(await page.locator('#module-postalLookup').isChecked(),false);
  assert.equal(await page.locator('#prompt-preview').inputValue(),'Preserve this prompt');
+
+ assert.equal(await page.locator('#provider').inputValue(), 'groq');
+ assert.equal(await page.locator('#api-key').inputValue(), 'fake-key');
+ assert.ok((await page.locator('#saved-key-preview').textContent()).includes('••••'));
+
+ await page.locator('#provider').selectOption('gemini');
+ assert.equal(await page.locator('#api-key').inputValue(), '');
+ assert.equal(await page.locator('#model').inputValue(), 'gemini-3.1-flash-lite');
+ assert.ok(await page.locator('#custom-model-box').isHidden());
+ assert.ok((await page.locator('#saved-key-preview').textContent()).includes('Brak zapisanego klucza dla: Google Gemini'));
+
+ await page.locator('#api-key').fill('AIzaSyTestGeminiKey1234');
+ assert.ok((await page.locator('#saved-key-preview').textContent()).includes('AIzaSy••••••••1234'));
+
+ await page.locator('#provider').selectOption('openai');
+ assert.equal(await page.locator('#api-key').inputValue(), '');
+ assert.equal(await page.locator('#model').inputValue(), 'gpt-6-luna');
+ assert.ok(await page.locator('#custom-model-box').isHidden());
+ assert.ok((await page.locator('#saved-key-preview').textContent()).includes('Brak zapisanego klucza dla: OpenAI'));
+
+ await page.locator('#provider').selectOption('gemini');
+ assert.equal(await page.locator('#api-key').inputValue(), 'AIzaSyTestGeminiKey1234');
+ assert.equal(await page.locator('#model').inputValue(), 'gemini-3.1-flash-lite');
+
+ await page.locator('#provider').selectOption('groq');
+ assert.equal(await page.locator('#api-key').inputValue(), 'fake-key');
  await page.goto(root+'popup.html');await page.locator('#point-0').waitFor();await page.locator('.hub-toggle').first().click();await page.waitForTimeout(100);
  assert.equal(calls,1);
  await page.evaluate(async()=>{const {routeSettings}=await chrome.storage.local.get('routeSettings');routeSettings.modules.hubSuggestions=false;await chrome.storage.local.set({routeSettings});});

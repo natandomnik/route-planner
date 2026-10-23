@@ -63,6 +63,11 @@ legend { font-weight: 600; padding: 0 6px; }
 .connection-status[data-state="error"] { color: var(--route-error); background: var(--route-error-tint); border-left: 3px solid var(--route-error); padding: 12px; }
 .connection-status[data-state="pending"] { color: var(--route-muted); }
 
+.saved-key-preview { font-size: 12px; margin: 6px 0 10px; font-family: ui-monospace, monospace; line-height: 1.5; color: var(--route-muted); }
+.saved-key-preview[data-state="saved"] { color: var(--route-ink); font-weight: 600; }
+.saved-key-preview[data-state="pending"] { color: #8a5814; }
+.saved-key-preview[data-state="empty"] { color: var(--route-muted); font-style: italic; font-family: inherit; }
+
 .prompt-preview { font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.6; min-height: 260px; }
 .analysis-code { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; overflow: auto; font-size: 12px; line-height: 1.6; padding: 10px; background: var(--route-paper); border-radius: 6px; }
 

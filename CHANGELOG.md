@@ -6,6 +6,7 @@ Versions follow semantic versioning. Dates use Europe/Warsaw. Commit messages fo
 
 ### Added
 
+- Masked API key preview (`#saved-key-preview`) below the key input in options, showing the start and end of the saved key with status indication for saved vs unsaved modifications.
 - Multi-provider support for endpoint hub suggestions (`hubSuggestions`): models from Google Gemini, OpenAI, Groq and OpenRouter can now be used for A/B endpoint suggestions.
 - Dynamic `#hub-model` dropdown displaying available models for providers with configured API keys.
 - Module settings details presented as collapsible accordions (`<details>`) for each module option under `Moduły`.
@@ -14,6 +15,11 @@ Versions follow semantic versioning. Dates use Europe/Warsaw. Commit messages fo
 ### Changed
 
 - Settings UI dynamically toggles module prompt accordions and configuration fields immediately when a module is enabled or disabled, keeping disabled modules' prompt editors and controls hidden.
+
+### Fixed
+
+- Provider profile isolation when switching providers in options: prevented previous provider model IDs from leaking into the newly selected provider's profile or forcing dropdowns to "custom".
+- Independent API key isolation per provider profile, preventing keys from being cross-contaminated or shared between providers during UI interactions.
 
 ## [1.6.0] - 2026-10-23
 
