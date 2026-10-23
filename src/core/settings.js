@@ -15,11 +15,17 @@ function normalizeRouteSettings(saved = {}) {
     if (typeof saved.model === 'string' && saved.model) profiles.gemini.model = saved.model;
   }
   const modules = normalizeRouteModules(saved.modules);
-  const hubModel = ['openai/gpt-oss-20b', 'openai/gpt-oss-120b'].includes(saved.hubModel) ? saved.hubModel : 'openai/gpt-oss-120b';
+  const hubModel = typeof saved.hubModel === 'string' && /^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,127}$/.test(saved.hubModel)
+    ? saved.hubModel
+    : 'openai/gpt-oss-120b';
+  const hubProvider = Object.hasOwn(AI_PROVIDERS, saved.hubProvider)
+    ? saved.hubProvider
+    : (typeof inferHubProvider === 'function' ? inferHubProvider(hubModel) : 'groq');
   const customPrompt = typeof saved.customPrompt === 'string' && saved.customPrompt.trim() ? saved.customPrompt : null;
-  return {mode: ['ai', 'gemini'].includes(saved.mode) ? 'ai' : 'local', provider, profiles, customPrompt, hubModel, modules, ...profiles[provider]};
+  return {mode: ['ai', 'gemini'].includes(saved.mode) ? 'ai' : 'local', provider, profiles, customPrompt, hubModel, hubProvider, modules, ...profiles[provider]};
 }
 async function readRouteSettings() {
   const {routeSettings} = await chrome.storage.local.get('routeSettings');
   return normalizeRouteSettings(routeSettings || {});
 }
+if (typeof module !== 'undefined' && module.exports) module.exports = {normalizeRouteSettings, readRouteSettings};

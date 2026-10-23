@@ -38,6 +38,7 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  await page.waitForTimeout(100);assert.equal(await page.locator('.hub-chip').count(),0);
  await page.goto(root+'options.html');await page.waitForFunction(()=>!document.querySelector('#save-settings').disabled);
  assert.equal(await page.locator('#hub-model').inputValue(),'openai/gpt-oss-120b');
+ await page.locator('#hub-suggestions-options > summary').click();
  await page.locator('#hub-model').selectOption('openai/gpt-oss-20b');await page.locator('#save-settings').click();
  await page.waitForFunction(()=>document.querySelector('#settings-status').textContent.includes('zapisane'));
  await page.reload();await page.waitForFunction(()=>!document.querySelector('#save-settings').disabled);

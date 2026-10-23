@@ -31,25 +31,99 @@ function validateHubSuggestions(result) {
   }
   return accepted.sort((a,b) => HUB_LABELS.indexOf(a.label) - HUB_LABELS.indexOf(b.label));
 }
+const providersRef = typeof AI_PROVIDERS !== 'undefined'
+  ? {AI_PROVIDERS, aiProvider, inferHubProvider}
+  : (typeof require === 'function' ? require('../../core/providers.js') : {});
+const resolveAiProvider = providersRef.aiProvider || (id => (typeof AI_PROVIDERS !== 'undefined' ? AI_PROVIDERS[id] : null));
+const resolveHubProvider = providersRef.inferHubProvider || (m => m?.startsWith('gemini') ? 'gemini' : m?.startsWith('openrouter/') ? 'openrouter' : m?.startsWith('gpt-') ? 'openai' : 'groq');
+
 async function findRouteHubs(route, role, settings, signal) {
   if (settings.modules?.hubSuggestions === false) throw new Error('Moduł sugestii jest wyłączony.');
   if (settings.mode !== 'ai') throw new Error('Włącz tryb AI w ustawieniach.');
-  const key = settings.profiles?.groq?.apiKey?.trim();
-  if (!key) throw new Error('Dodaj klucz Groq w ustawieniach.');
-  if (!['openai/gpt-oss-20b','openai/gpt-oss-120b'].includes(settings.hubModel)) throw new Error('Wybierz model sugestii w ustawieniach.');
   if (!['A','B'].includes(role) || !Array.isArray(route) || route.length < 2 || route.length > 11 || route.some(p => typeof p !== 'string' || !p.trim() || p.length > 500)) throw new Error('Uzupełnij punkty trasy.');
+
+  const model = settings.hubModel || 'openai/gpt-oss-120b';
+  const providerId = settings.hubProvider || resolveHubProvider(model);
+  const provider = resolveAiProvider(providerId);
+  const key = settings.profiles?.[providerId]?.apiKey?.trim();
+  if (!key) throw new Error('Dodaj klucz ' + (provider?.name || providerId) + ' w ustawieniach.');
   const anchor = role === 'A' ? route[0] : route.at(-1);
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-    method:'POST', redirect:'error', signal,
-    headers:{'Content-Type':'application/json',Authorization:'Bearer '+key},
-    body:JSON.stringify({model:settings.hubModel,reasoning_effort:'medium',max_completion_tokens:8192,tools:[{type:'browser_search'}],tool_choice:'required',messages:[{role:'system',content:HUB_PROMPT},{role:'user',content:JSON.stringify({anchor,role,route})}]})
-  });
-  if (!response.ok) throw new Error(response.status === 429 ? 'Limit Groq — spróbuj później.' : 'Wyszukiwanie sugestii: HTTP '+response.status+'.');
-  const body = await response.json(), choice = body.choices?.[0];
-  if (choice?.finish_reason !== 'stop' || choice.message?.refusal || typeof choice.message?.content !== 'string') throw new Error('Model nie ukończył wyszukiwania.');
+
+  let response;
+  if (providerId === 'groq') {
+    response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST', redirect: 'error', signal,
+      headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + key},
+      body: JSON.stringify({
+        model, reasoning_effort: 'medium', max_completion_tokens: 8192,
+        tools: [{type: 'browser_search'}], tool_choice: 'required',
+        messages: [{role: 'system', content: HUB_PROMPT}, {role: 'user', content: JSON.stringify({anchor, role, route})}]
+      })
+    });
+  } else if (providerId === 'gemini') {
+    response = await fetch('https://generativelanguage.googleapis.com/v1beta/models/' + model + ':generateContent', {
+      method: 'POST', redirect: 'error', signal,
+      headers: {'Content-Type': 'application/json', 'x-goog-api-key': key},
+      body: JSON.stringify({
+        systemInstruction: {parts: [{text: HUB_PROMPT}]},
+        contents: [{role: 'user', parts: [{text: JSON.stringify({anchor, role, route})}]}],
+        generationConfig: {responseMimeType: 'application/json', maxOutputTokens: 8192}
+      })
+    });
+  } else if (providerId === 'openai') {
+    const payload = {
+      model,
+      messages: [{role: 'system', content: HUB_PROMPT}, {role: 'user', content: JSON.stringify({anchor, role, route})}],
+      response_format: {type: 'json_object'},
+      max_completion_tokens: 8192
+    };
+    if (model === 'gpt-6-luna') payload.reasoning_effort = 'none';
+    if (model === 'gpt-5.4-mini') payload.reasoning_effort = 'low';
+    response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST', redirect: 'error', signal,
+      headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + key},
+      body: JSON.stringify(payload)
+    });
+  } else if (providerId === 'openrouter') {
+    response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST', redirect: 'error', signal,
+      headers: {'Content-Type': 'application/json', Authorization: 'Bearer ' + key},
+      body: JSON.stringify({
+        model,
+        messages: [{role: 'system', content: HUB_PROMPT}, {role: 'user', content: JSON.stringify({anchor, role, route})}],
+        response_format: {type: 'json_object'},
+        max_tokens: 8192
+      })
+    });
+  } else {
+    throw new Error('Nieobsługiwany dostawca: ' + (provider?.name || providerId));
+  }
+
+  if (!response.ok) {
+    if (response.status === 429) throw new Error('Limit ' + provider.name + ' — spróbuj później.');
+    throw new Error('Wyszukiwanie sugestii: ' + provider.name + ' HTTP ' + response.status + '.');
+  }
+
+  const body = await response.json();
+  let content = '';
+  if (providerId === 'gemini') {
+    const candidate = body.candidates?.[0];
+    if (candidate?.finishReason && candidate.finishReason !== 'STOP') throw new Error('Model nie ukończył wyszukiwania.');
+    content = candidate?.content?.parts?.filter(p => !p.thought).map(p => p.text || '').join('') || '';
+  } else {
+    const choice = body.choices?.[0];
+    if (choice?.finish_reason && choice.finish_reason !== 'stop') throw new Error('Model nie ukończył wyszukiwania.');
+    if (choice?.message?.refusal) throw new Error('Model odmówił odpowiedzi.');
+    content = typeof choice?.message?.content === 'string' ? choice.message.content : '';
+  }
+  if (!content) throw new Error('Brak odpowiedzi modelu.');
+
   let result;
-  try {result=JSON.parse(choice.message.content.trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,''));}
-  catch {throw new Error('Nieprawidłowy format sugestii. Spróbuj ponownie.');}
+  try {
+    result = JSON.parse(content.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
+  } catch {
+    throw new Error('Nieprawidłowy format sugestii. Spróbuj ponownie.');
+  }
   return validateHubSuggestions(result);
 }
-if (typeof module !== 'undefined' && module.exports) module.exports = {findRouteHubs,validateHubSuggestions,HUB_PROMPT};
+if (typeof module !== 'undefined' && module.exports) module.exports = {findRouteHubs, validateHubSuggestions, HUB_PROMPT, inferHubProvider: resolveHubProvider};

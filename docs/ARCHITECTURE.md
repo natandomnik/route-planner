@@ -64,9 +64,9 @@ Functions: DOM event handlers and initialization.
 
 ## `src/modules/hub-suggestions/hubs.js`
 
-Search-area instruction, web-enabled Groq request and suggestion validation.
+Search-area instruction, multi-provider model requests (Groq, Gemini, OpenAI, OpenRouter) and suggestion validation.
 
-Functions: `validateHubSuggestions`, `findRouteHubs`.
+Functions: `validateHubSuggestions`, `findRouteHubs`, `inferHubProvider`.
 
 ## Pages and configuration
 

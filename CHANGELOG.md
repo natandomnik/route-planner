@@ -6,7 +6,10 @@ Versions follow semantic versioning. Dates use Europe/Warsaw. Commit messages fo
 
 ### Added
 
-- Declarative `data-module="<moduleId>"` binding in options for module-dependent option sections, prompt accordions and external links (`postalLab`, `hubSuggestions`, `aiExtraction`).
+- Multi-provider support for endpoint hub suggestions (`hubSuggestions`): models from Google Gemini, OpenAI, Groq and OpenRouter can now be used for A/B endpoint suggestions.
+- Dynamic `#hub-model` dropdown displaying available models for providers with configured API keys.
+- Module settings details presented as collapsible accordions (`<details>`) for each module option under `Moduły`.
+- Declarative `data-module="<moduleId>"` binding in options for module-dependent option sections, prompt accordions and external links (`postalLab`, `hubSuggestions`, `aiExtraction`, `postalLookup`).
 
 ### Changed
 

@@ -26,5 +26,35 @@ test('local mode and absent keys never send requests',async()=>{
  const original=global.fetch;global.fetch=()=>{throw Error('Network must not be used');};try {
  await assert.rejects(findRouteHubs(['a','b'],'A',{mode:'local'},new AbortController().signal),/Włącz/);
  await assert.rejects(findRouteHubs(['a','b'],'A',{mode:'ai'},new AbortController().signal),/klucz Groq/);
+ await assert.rejects(findRouteHubs(['a','b'],'A',{mode:'ai',hubModel:'gpt-6-luna',profiles:{}},new AbortController().signal),/klucz OpenAI/);
+ await assert.rejects(findRouteHubs(['a','b'],'A',{mode:'ai',hubModel:'gemini-3.1-flash-lite',profiles:{}},new AbortController().signal),/klucz Google Gemini/);
  }finally{global.fetch=original;}
+});
+test('uses OpenAI model with Bearer key when selected for hubs', async () => {
+  const original = global.fetch;
+  try {
+    global.fetch = async (url, options) => {
+      assert.equal(url, 'https://api.openai.com/v1/chat/completions');
+      assert.equal(options.headers.Authorization, 'Bearer openai-key');
+      const body = JSON.parse(options.body);
+      assert.equal(body.model, 'gpt-6-luna');
+      assert.equal(body.response_format.type, 'json_object');
+      assert.ok(!options.body.includes('groq-key'));
+      return {ok: true, json: async () => ({choices: [{finish_reason: 'stop', message: {content: '{"suggestions":[]}'}}]})};
+    };
+    assert.deepEqual(await findRouteHubs(['Warszawa, Poland', 'Berlin, Germany'], 'A', {mode: 'ai', hubModel: 'gpt-6-luna', profiles: {openai: {apiKey: 'openai-key'}, groq: {apiKey: 'groq-key'}}}, new AbortController().signal), []);
+  } finally { global.fetch = original; }
+});
+test('uses Gemini model with x-goog-api-key when selected for hubs', async () => {
+  const original = global.fetch;
+  try {
+    global.fetch = async (url, options) => {
+      assert.ok(url.startsWith('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite'));
+      assert.equal(options.headers['x-goog-api-key'], 'gemini-key');
+      const body = JSON.parse(options.body);
+      assert.equal(body.generationConfig.responseMimeType, 'application/json');
+      return {ok: true, json: async () => ({candidates: [{finishReason: 'STOP', content: {parts: [{text: '{"suggestions":[]}'}]}}]})};
+    };
+    assert.deepEqual(await findRouteHubs(['Warszawa, Poland', 'Berlin, Germany'], 'B', {mode: 'ai', hubModel: 'gemini-3.1-flash-lite', profiles: {gemini: {apiKey: 'gemini-key'}, groq: {apiKey: 'groq-key'}}}, new AbortController().signal), []);
+  } finally { global.fetch = original; }
 });

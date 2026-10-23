@@ -30,3 +30,14 @@ function aiProvider(id) {
   if (!Object.hasOwn(AI_PROVIDERS, id)) throw new Error('Nieznany dostawca AI. Wybierz dostawcę w ustawieniach.');
   return AI_PROVIDERS[id];
 }
+function inferHubProvider(model) {
+  if (!model || typeof model !== 'string') return 'groq';
+  if (model.startsWith('gemini')) return 'gemini';
+  if (model.startsWith('openrouter/')) return 'openrouter';
+  if (model.startsWith('gpt-')) return 'openai';
+  for (const [providerId, config] of Object.entries(AI_PROVIDERS)) {
+    if (config.models.some(([id]) => id === model)) return providerId;
+  }
+  return 'groq';
+}
+if (typeof module !== 'undefined' && module.exports) module.exports = {AI_PROVIDERS, aiProvider, inferHubProvider};

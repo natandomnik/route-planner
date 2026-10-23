@@ -6,13 +6,13 @@
 
 ## Integration
 
-Popup compass controls at the first/last point display non-mutating suggestion chips. Ordered route and selected endpoint provide context. Separate `hubModel` setting chooses 20B or 120B.
+Popup compass controls at the first/last point display non-mutating suggestion chips. Ordered route and selected endpoint provide context. The `hubModel` setting chooses among available configured models (Groq, Google Gemini, OpenAI, OpenRouter).
 
 ## Settings and lifecycle
 
 Toggle: `routeSettings.modules.hubSuggestions`. Default: enabled, preserving existing installations. Registry: `src/core/modules.js`. Settings UI and migration live in the core/UI layers.
 
-Groq browser_search. Disabled service rejects before requests. Route/settings changes invalidate results; a repeated in-flight click cancels. Geographic assertions remain model estimates, not independent routing evidence.
+Supports Groq, Google Gemini, OpenAI, and OpenRouter using the user's configured provider API keys. Disabled service rejects before requests. Route/settings changes invalidate results; a repeated in-flight click cancels. Geographic assertions remain model estimates, not independent routing evidence.
 
 ## Dependencies
 

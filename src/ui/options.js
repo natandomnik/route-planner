@@ -35,7 +35,48 @@ function captureProfile() {
 }
 function currentSettings() {
   captureProfile();
-  return {mode: form.elements.mode.value, provider: selectedProvider, profiles, modules: currentModules(), hubModel: hubModelInput.value, customPrompt: promptInput.value === AI_ROUTE_PROMPT ? null : promptInput.value, ...profiles[selectedProvider]};
+  const selectedHubOption = hubModelInput.selectedOptions[0];
+  const hubProvider = selectedHubOption?.dataset?.provider || (typeof inferHubProvider === 'function' ? inferHubProvider(hubModelInput.value) : 'groq');
+  return {mode: form.elements.mode.value, provider: selectedProvider, profiles, modules: currentModules(), hubModel: hubModelInput.value, hubProvider, customPrompt: promptInput.value === AI_ROUTE_PROMPT ? null : promptInput.value, ...profiles[selectedProvider]};
+}
+function updateHubModels() {
+  captureProfile();
+  const currentVal = hubModelInput.value;
+  const withKeys = Object.entries(AI_PROVIDERS).filter(([id]) => !!profiles[id]?.apiKey?.trim());
+  const providersToShow = withKeys.length > 0 ? withKeys : Object.entries(AI_PROVIDERS);
+  hubModelInput.replaceChildren();
+  let foundCurrent = false;
+
+  for (const [providerId, provider] of providersToShow) {
+    const group = document.createElement('optgroup');
+    group.label = provider.name;
+    for (const [modelId, label] of provider.models) {
+      const option = new Option(label, modelId);
+      option.dataset.provider = providerId;
+      if (modelId === currentVal) foundCurrent = true;
+      group.append(option);
+    }
+    const prof = profiles[providerId];
+    if (prof?.model && prof.model !== 'custom' && !provider.models.some(([id]) => id === prof.model)) {
+      const option = new Option(prof.model + ' (własny)', prof.model);
+      option.dataset.provider = providerId;
+      if (prof.model === currentVal) foundCurrent = true;
+      group.append(option);
+    }
+    hubModelInput.append(group);
+  }
+
+  if (currentVal && !foundCurrent) {
+    const fallbackGroup = document.createElement('optgroup');
+    fallbackGroup.label = 'Bieżący model';
+    const opt = new Option(currentVal, currentVal);
+    opt.dataset.provider = typeof inferHubProvider === 'function' ? inferHubProvider(currentVal) : 'groq';
+    fallbackGroup.append(opt);
+    hubModelInput.prepend(fallbackGroup);
+    hubModelInput.value = currentVal;
+  } else if (currentVal) {
+    hubModelInput.value = currentVal;
+  }
 }
 function showProvider() {
   const provider = aiProvider(selectedProvider), profile = profiles[selectedProvider];
@@ -61,20 +102,22 @@ function showMode() {
     const isEnabled = input.checked;
     const elements = document.querySelectorAll(`[data-module="${id}"], #module-options-${id}`);
     for (const el of elements) {
-      el.hidden = !isEnabled;
+      const requiresAi = el.dataset.requiresAi === 'true' || el.closest('#ai-settings') !== null;
+      el.hidden = !isEnabled || (requiresAi && !ai);
       for (const control of el.querySelectorAll('input, select, textarea, button')) {
-        control.disabled = !loaded || !isEnabled || (!ai && el.closest('#ai-settings') !== null);
+        control.disabled = !loaded || el.hidden;
       }
     }
   }
+  updateHubModels();
   for (const input of [providerInput, modelInput, keyInput]) input.disabled = !loaded || !ai;
   customModelInput.disabled = !loaded || !ai || !custom;
   customModelInput.required = ai && custom;
   keyInput.required = ai;
   for (const input of moduleInputs.values()) input.disabled = !loaded;
   hubModelInput.disabled = !loaded || !ai || !modules.hubSuggestions;
-  promptInput.disabled = !loaded || !modules.aiExtraction;
-  resetPromptButton.disabled = !loaded || !modules.aiExtraction;
+  promptInput.disabled = !loaded || !ai || !modules.aiExtraction;
+  resetPromptButton.disabled = !loaded || !ai || !modules.aiExtraction;
   testButton.disabled = !loaded || !ai || !modules.aiExtraction || !!connectionController;
   deleteButton.disabled = !loaded || !ai;
 }
@@ -97,7 +140,9 @@ resetPromptButton.addEventListener('click', () => {
   promptInput.value = AI_ROUTE_PROMPT; resetConnection();
   promptStatus.textContent = 'Przywrócono instrukcję domyślną. Kliknij „Zapisz ustawienia”, aby ją zapamiętać.';
 });
-keyInput.addEventListener('input', resetConnection);
+keyInput.addEventListener('input', () => {
+  captureProfile(); updateHubModels(); resetConnection();
+});
 customModelInput.addEventListener('input', resetConnection);
 modelInput.addEventListener('change', resetConnection);
 form.querySelectorAll('input[name="mode"]').forEach(input => input.addEventListener('change', resetConnection));
@@ -143,7 +188,7 @@ form.addEventListener('submit', async event => {
     if (settings.modules.aiExtraction) validatePrompt();
     if (settings.mode === 'ai') validateSettings(settings);
     saveButton.disabled = true;
-    await chrome.storage.local.set({routeSettings: {mode: settings.mode, provider: settings.provider, profiles: settings.profiles, customPrompt: settings.customPrompt, hubModel: settings.hubModel, modules: settings.modules}});
+    await chrome.storage.local.set({routeSettings: {mode: settings.mode, provider: settings.provider, profiles: settings.profiles, customPrompt: settings.customPrompt, hubModel: settings.hubModel, hubProvider: settings.hubProvider, modules: settings.modules}});
     promptStatus.textContent = settings.customPrompt === null ? 'Zapisano instrukcję domyślną.' : 'Zapisano Twoją instrukcję — będzie używana przy każdej analizie AI.';
     showMode();
     settingsStatus.textContent = 'Ustawienia zapisane. Będą użyte przy następnym rozpoznaniu trasy.';
@@ -157,9 +202,11 @@ deleteButton.addEventListener('click', async () => {
     const saved = await readRouteSettings();
     saved.profiles[deletingProvider].apiKey = '';
     const mode = saved.provider === deletingProvider ? 'local' : saved.mode;
-    await chrome.storage.local.set({routeSettings: {mode, provider: saved.provider, profiles: saved.profiles, customPrompt: saved.customPrompt, hubModel: saved.hubModel, modules: saved.modules}});
+    await chrome.storage.local.set({routeSettings: {mode, provider: saved.provider, profiles: saved.profiles, customPrompt: saved.customPrompt, hubModel: saved.hubModel, hubProvider: saved.hubProvider, modules: saved.modules}});
     profiles[deletingProvider].apiKey = '';
-    if (selectedProvider === deletingProvider) { keyInput.value = ''; form.elements.mode.value = 'local'; showMode(); }
+    if (selectedProvider === deletingProvider) { keyInput.value = ''; form.elements.mode.value = 'local'; }
+    updateHubModels();
+    showMode();
     settingsStatus.textContent = 'Usunięto klucz: ' + aiProvider(deletingProvider).name + '. Pozostałe klucze zachowano.';
   } catch { settingsStatus.textContent = 'Nie udało się usunąć klucza.'; }
 });
@@ -169,6 +216,7 @@ deleteButton.addEventListener('click', async () => {
     const settings = await readRouteSettings();
     for (const [id, input] of moduleInputs) input.checked = settings.modules[id];
     hubModelInput.value = settings.hubModel;
+    updateHubModels();
     promptInput.value = getAiRoutePrompt(settings);
     promptStatus.textContent = settings.customPrompt === null ? 'Używana jest instrukcja domyślna.' : 'Używana jest Twoja zapisana instrukcja.';
     profiles = settings.profiles; selectedProvider = settings.provider;
