@@ -18,6 +18,7 @@ runButton.addEventListener('click', async () => {
   try {
     const settings = await readRouteSettings();
     controller.signal.throwIfAborted();
+    if (settings.modules.postalLab === false) throw new Error('Moduł testów kodów jest wyłączony.');
     const rows = await runPostalTest(settings.profiles.groq.apiKey, controller.signal);
     controller.signal.throwIfAborted();
     for (const item of POSTAL_TEST_CASES) {
@@ -40,4 +41,8 @@ runButton.addEventListener('click', async () => {
   } finally {
     clearTimeout(timer); labController = null; runButton.disabled = false; cancelButton.disabled = true;
   }
+});
+
+chrome.storage.onChanged?.addListener((changes, area) => {
+  if (area === 'local' && changes.routeSettings) {labController?.abort(); labResults.replaceChildren();}
 });

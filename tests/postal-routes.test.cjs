@@ -1,6 +1,6 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
-const {parseTransportRoute, buildGoogleMapsUrl} = require('../transport-maps-parser.js');
+const {parseTransportRoute, buildGoogleMapsUrl} = require('../src/core/transport-maps-parser.js');
 for (const input of ['de 02826 do pl 05 870', 'DE02826 -> PL05870', 'DE 02826 → PL 05-870']) {
  test('country and postal codes: ' + input, () => {
   const result = parseTransportRoute(input);

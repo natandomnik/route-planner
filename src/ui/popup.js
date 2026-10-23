@@ -11,6 +11,7 @@ let points = [], dirty = false, opening = false;
 let copyController = null;
 let hubRouteKey = '';
 const hubStates = new Map();
+let enabledModules = normalizeRouteModules();
 let analyzing = false, runId = 0, controller = null, warnings = [], ignored = [];
 let localTimer = null, recognition = '', undoSnapshot = null;
 const aiButton = document.getElementById('parse-ai');
@@ -35,6 +36,9 @@ function cancelAnalysis() {
 }
 async function refreshMode() {
   const settings = await readRouteSettings();
+  enabledModules = settings.modules;
+  aiButton.hidden = !enabledModules.aiExtraction;
+  paintHubSuggestions();
   const label = document.getElementById('selected-model');
   label.textContent = aiProvider(settings.provider).name + ' · ' + settings.model + (settings.mode === 'ai' ? '' : ' · wyłączony');
   label.title = 'Model wybrany w ustawieniach';
@@ -67,12 +71,13 @@ function paintHubSuggestions() {
   }
   for (const button of pointList.querySelectorAll('.hub-toggle')) {
     const state = hubStates.get(button.dataset.role);
+    button.hidden = !enabledModules.hubSuggestions;
     button.disabled = analyzing || dirty || points.length < 2 || points.some(p => !p.trim());
     button.setAttribute('aria-busy', String(!!state?.controller));
     button.setAttribute('aria-expanded', String(!!state?.visible));
     button.title = state?.controller ? 'Szukanie obszarów… Kliknij, aby anulować' : 'Sugestie obszarów poszukiwania przewoźników';
     const panel = document.getElementById(button.getAttribute('aria-controls'));
-    panel.hidden = !state?.visible; panel.replaceChildren();
+    panel.hidden = !enabledModules.hubSuggestions || !state?.visible; panel.replaceChildren();
     if (!state?.visible) continue;
     if (state.controller || state.error || !state.items?.length) {
       const text = document.createElement('span'); text.className = 'hub-message';
@@ -89,7 +94,7 @@ function paintHubSuggestions() {
   }
 }
 async function toggleHubSuggestions(role) {
-  if (analyzing || dirty || points.length < 2 || points.some(p => !p.trim())) return;
+  if (!enabledModules.hubSuggestions || analyzing || dirty || points.length < 2 || points.some(p => !p.trim())) return;
   const existing = hubStates.get(role);
   if (existing?.controller) {existing.controller.abort();hubStates.delete(role);paintHubSuggestions();return;}
   if (existing?.items?.length) {existing.visible = !existing.visible;paintHubSuggestions();return;}
@@ -243,7 +248,7 @@ function analyzeLocal() {
   }
 }
 async function analyzeAI() {
-  if (analyzing || !source.value.trim()) return;
+  if (!enabledModules.aiExtraction || analyzing || !source.value.trim()) return;
   clearTimeout(localTimer); localTimer = null;
   // Finish pending local recognition before taking a recoverable snapshot.
   if (dirty) analyzeLocal();
@@ -331,7 +336,9 @@ copyButton.addEventListener('click', async () => {
   try {
     try {
       const settings = await readRouteSettings();
-      if (settings.mode !== 'ai') {
+      if (!settings.modules.postalLookup) {
+        note = '';
+      } else if (settings.mode !== 'ai') {
         note = 'Bez uzupełnienia kodów — włączono tryb lokalny.';
       } else if (!settings.profiles.groq.apiKey.trim()) {
         note = 'Bez uzupełnienia kodów — brak zapisanego klucza Groq.';

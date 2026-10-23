@@ -4,7 +4,19 @@ Versions follow semantic versioning. Dates use Europe/Warsaw. Commit messages fo
 
 ## [Unreleased]
 
-No changes since the initial stable import.
+### Added
+
+- Independent, persistent settings toggles for AI extraction, clipboard postal lookup, endpoint hub suggestions and the postal experiment; all existing defaults stay enabled.
+- English per-module documentation, module development contract and complete source/function map.
+- Locked development dependencies, portable browser tests and GitHub Actions CI.
+
+### Changed
+
+- Organized source under `src/core`, `src/ui`, and `src/modules`, and styles under `assets/styles`.
+- Preserved root extension page URLs and existing runtime version 1.5.0 pending an approved release.
+- Moved original Polish notes unchanged into `docs/legacy`.
+
+These changes are on `feature/modular-structure` and are not part of stable v1.5.0 until approved.
 
 ## [1.5.0] - 2026-10-23
 

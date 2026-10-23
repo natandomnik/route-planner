@@ -1,6 +1,6 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
-const {formatClipboardRoute} = require('../transport-maps-parser.js');
+const {formatClipboardRoute} = require('../src/core/transport-maps-parser.js');
 test('plain lines, converts countries and retains full postcodes', () => {
  assert.equal(formatClipboardRoute(['57072 Siegen, Germany','39-100 Ropczyce, Poland']), 'DE 57072 Siegen\nPL 39-100 Ropczyce');
 });
@@ -13,7 +13,7 @@ test('does not invent absent countries, cities or postcodes; keeps street detail
 test('handles country codes, Polish names, leading zeroes and alphanumeric postcodes', () => {
  assert.equal(formatClipboardRoute(['PL 05 870 Błonie','1234 AB Test, Netherlands','57072 Siegen, Niemcy']), 'PL 05-870 Błonie\nNL 1234 AB Test\nDE 57072 Siegen');
 });
-const {enrichClipboardPoints} = require('../transport-maps-parser.js');
+const {enrichClipboardPoints} = require('../src/core/transport-maps-parser.js');
 const candidate = (id, country, postcode) => ({id:String(id),status:'candidate',country,postcode,locality:'Model locality',sources:[{url:'https://example.com'}]});
 test('adds codes without rewriting names, street details, order or duplicates',()=>{
  const result=enrichClipboardPoints(['Siegen Markt 2, Germany','Ropczyce, Poland','Siegen Markt 2, Germany'],[candidate(0,'DE','57072'),candidate(1,'PL','39-100'),candidate(2,'DE','57072')]);

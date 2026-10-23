@@ -1,6 +1,6 @@
 const {test} = require('node:test');
 const assert = require('node:assert/strict');
-const {runPostalTest, validatePostalTest, POSTAL_TEST_CASES} = require('../postal-lab.js');
+const {runPostalTest, validatePostalTest, POSTAL_TEST_CASES} = require('../src/modules/postal-lookup/postal-lab.js');
 const rows = () => POSTAL_TEST_CASES.map(c => ({id:c.id,status:'ambiguous',country:null,postcode:null,locality:null,reason:'Brak jednoznacznych danych.',sources:[]}));
 test('does not treat an uncertain code as a usable proposal',()=>{
  const results=rows();results[0].postcode='57072';
