@@ -2,7 +2,7 @@
 
 Versions follow semantic versioning. Dates use Europe/Warsaw. Commit messages follow Conventional Commits.
 
-## [Unreleased]
+## [1.7.0] - 2026-10-23
 
 ### Added
 
