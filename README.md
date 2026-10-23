@@ -2,7 +2,7 @@
 
 Private Chrome/Chromium Manifest V3 extension for freight forwarders. Turns an informal transport message into an editable route, opens Google Maps in the current tab, and copies a compact list of route addresses.
 
-**Current stable version: 1.5.0** ([release](https://github.com/natandomnik/Trasa-do-Maps/releases/tag/v1.5.0)). This branch contains an **Unreleased** modularization proposal; it has not been merged into `main`. The product interface is Polish; development documentation is English.
+**Current stable version: 1.6.0** ([release](https://github.com/natandomnik/Trasa-do-Maps/releases/tag/v1.6.0)). The product interface is Polish; development documentation is English.
 
 ## Features
 
@@ -35,6 +35,7 @@ API keys belong only in extension settings. They are stored in `chrome.storage.l
 - `fix/<topic>`: bug fixes.
 - Use Conventional Commits, for example `feat(hubs): add search-area toggle`.
 - Every release updates `manifest.json`, `CHANGELOG.md`, and has an annotated `vX.Y.Z` tag.
+- Develop and test locally first. Push branches, tags or releases only after explicit owner approval. Local commits are allowed.
 - **Do not merge into `main` without the owner's explicit approval.**
 
 See [AGENTS.md](AGENTS.md), [architecture](docs/ARCHITECTURE.md), [release process](docs/RELEASING.md), and [changelog](CHANGELOG.md).

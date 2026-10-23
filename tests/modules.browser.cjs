@@ -4,10 +4,13 @@ const assert=require('node:assert/strict');const path=require('node:path');
  const browser=await chromium.launch(launchOptions());
  try {
  const page=await browser.newPage();let calls=0,release;
+ const data={"routeSettings":{"mode":"ai","provider":"groq","customPrompt":"Preserve this prompt","profiles":{"groq":{"apiKey":"fake-key"}},"modules":{"aiExtraction":false,"postalLookup":false,"hubSuggestions":false,"postalLab":false}}};
+ await page.exposeBinding('testStorageGet',(_source,k)=>({[k]:data[k]}));
+ await page.exposeBinding('testStorageSet',(_source,v)=>{Object.assign(data,v);});
+ await page.exposeBinding('testStorageRemove',(_source,k)=>{delete data[k];});
  await page.addInitScript(()=>{
-  const data=JSON.parse(localStorage.getItem('modules-test')||'{"routeSettings":{"mode":"ai","provider":"groq","customPrompt":"Preserve this prompt","profiles":{"groq":{"apiKey":"fake-key"}},"modules":{"aiExtraction":false,"postalLookup":false,"hubSuggestions":false,"postalLab":false}}}');
   const listeners=[];
-  const area={get:async k=>({[k]:data[k]}),set:async obj=>{Object.assign(data,obj);localStorage.setItem('modules-test',JSON.stringify(data));for(const fn of listeners)fn(Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,{newValue:v}])),'local');},remove:async k=>delete data[k]};
+  const area={get:k=>window.testStorageGet(k),set:async obj=>{await window.testStorageSet(obj);for(const fn of listeners)fn(Object.fromEntries(Object.entries(obj).map(([k,v])=>[k,{newValue:v}])),'local');},remove:k=>window.testStorageRemove(k)};
   window.chrome={storage:{local:area,session:area,onChanged:{addListener:fn=>listeners.push(fn)}}};
   window.copies=[];Object.defineProperty(navigator,'clipboard',{value:{writeText:async t=>copies.push(t)}});
  });

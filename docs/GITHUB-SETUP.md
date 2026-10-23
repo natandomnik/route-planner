@@ -5,7 +5,8 @@
 - Default/stable branch: main.
 - Initial stable tag/release: v1.5.0.
 - Auto-merge: disabled. Squash merging is available; merge commits/rebase merge are disabled in repository settings.
-- Feature organization is proposed on feature/modular-structure, not merged into main.
+- The owner approved merging the modular structure into main as v1.6.0.
+- Future work is tested locally and pushed only after explicit owner approval.
 
 ## Protection limitation
 

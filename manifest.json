@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Trasa do Maps — dla spedytora",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Zamienia tekst zlecenia transportowego w edytowalne punkty trasy Google Maps.",
   "minimum_chrome_version": "102",
   "permissions": [
