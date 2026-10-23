@@ -1,5 +1,6 @@
 'use strict';
 async function parseWithAI(text, settings, signal, onRetry, onResponse) {
+  if (settings.modules?.aiExtraction === false) throw new Error('Moduł rozpoznawania AI jest wyłączony.');
   const provider = aiProvider(settings.provider);
   if (!settings.apiKey?.trim()) throw new Error('Dodaj klucz API dostawcy ' + provider.name + ' w ustawieniach.');
   if (!/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,127}$/.test(settings.model)) throw new Error('Nieprawidłowy identyfikator modelu.');

@@ -4,7 +4,21 @@ Versions follow semantic versioning. Dates use Europe/Warsaw. Commit messages fo
 
 ## [Unreleased]
 
-No changes since the initial stable import.
+## [1.6.0] - 2026-10-23
+
+### Added
+
+- Independent, persistent settings toggles for AI extraction, clipboard postal lookup, endpoint hub suggestions and the postal experiment; all existing defaults stay enabled.
+- English per-module documentation, module development contract and complete source/function map.
+- Locked development dependencies, portable browser tests and GitHub Actions CI.
+
+### Changed
+
+- Organized source under `src/core`, `src/ui`, and `src/modules`, and styles under `assets/styles`.
+- Preserved root extension page URLs and existing default behavior.
+- Moved original Polish notes unchanged into `docs/legacy`.
+
+Approved modular structure release; browser storage mocks persist independently of document navigation.
 
 ## [1.5.0] - 2026-10-23
 
@@ -39,4 +53,4 @@ The following history is reconstructed from existing project notes, not historic
 - **1.4.1**: selected model shown in the popup.
 - **1.4.0**: editable, persistent custom AI instruction.
 
-Original notes are preserved in INSTALACJA.md. Earlier archives remain outside the repository.
+Original notes are preserved in docs/legacy/INSTALACJA.md. Earlier archives remain outside the repository.

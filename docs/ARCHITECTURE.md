@@ -1,68 +1,68 @@
 # File and function map
 
-This map describes the initial 1.5.0 snapshot. Module organization is developed on a feature branch.
+This map describes the Unreleased modularization branch. The initial flat-layout snapshot remains in tag v1.5.0. Root HTML URLs are preserved so existing links and context-menu flows continue to work.
 
-## `background.js`
+## `src/background.js`
 
 Context-menu service worker; captures selection and opens a separate review page.
 
 Functions: `openReview`.
 
-## `popup.js`
+## `src/ui/popup.js`
 
 Popup controller: local/AI parsing, route editing, status, undo, suggestions and copy orchestration.
 
 Functions: `setAnalyzing`, `cancelAnalysis`, `refreshMode`, `message`, `persist`, `updateOpen`, `paintHubSuggestions`, `toggleHubSuggestions`, `insertPoint`, `movePoint`, `clearDrag`, `markDrop`, `dropPoint`, `renderPoints`, `insertSlot`, `showDetails`, `displayResult`, `analyzeLocal`, `analyzeAI`, `initialize`.
 
-## `options.js`
+## `src/ui/options.js`
 
 Settings form: provider profiles, prompt editing, connection testing and persistence.
 
 Functions: `currentModel`, `captureProfile`, `currentSettings`, `showProvider`, `showMode`, `connectionMessage`, `resetConnection`, `validatePrompt`, `validateSettings`.
 
-## `providers.js`
+## `src/core/providers.js`
 
 Fixed provider endpoints, model choices and display metadata.
 
 Functions: `aiProvider`.
 
-## `settings.js`
+## `src/core/settings.js`
 
 Settings defaults, legacy migration and local storage read.
 
 Functions: `normalizeRouteSettings`, `readRouteSettings`.
 
-## `transport-maps-parser.js`
+## `src/core/transport-maps-parser.js`
 
 Local route parser, Maps URL builder and deterministic clipboard formatting.
 
 Functions: `readFields`, `normalize`, `split`, `parsePoint`, `parseRoute`, `addresses`, `buildUrl`, `formatClipboardPoint`, `formatClipboardRoute`, `enrichClipboardPoints`, `parseAddresses`, `parseTransportRoute`, `buildGoogleMapsUrl`.
 
-## `gemini.js`
+## `src/modules/ai-extraction/gemini.js`
 
 Shared AI prompt/schema, Gemini adapter, retries and AI response validation.
 
 Functions: `getAiRoutePrompt`, `waitForGeminiRetry`, `fetchGeminiWithRetry`, `parseWithGemini`, `validateAiRoute`.
 
-## `ai.js`
+## `src/modules/ai-extraction/ai.js`
 
 Provider dispatcher and chat-completion adapters.
 
 Functions: `parseWithAI`.
 
-## `postal-lab.js`
+## `src/modules/postal-lookup/postal-lab.js`
 
 Groq web-based postal research request and validation; shared with copy.
 
 Functions: `validatePostalTest`, `runPostalTest`.
 
-## `postal-lab-ui.js`
+## `src/modules/postal-lab/postal-lab-ui.js`
 
 Isolated experiment controller and result rendering.
 
 Functions: DOM event handlers and initialization.
 
-## `hubs.js`
+## `src/modules/hub-suggestions/hubs.js`
 
 Search-area instruction, web-enabled Groq request and suggestion validation.
 
@@ -74,7 +74,7 @@ Functions: `validateHubSuggestions`, `findRouteHubs`.
 - `popup.html`: route editor markup and ordered script entry points.
 - `options.html`: settings markup and ordered scripts.
 - `postal-lab.html`: isolated experiment page.
-- `popup.css`: shared styling, editor layout, busy indicators and suggestion chips.
+- `assets/styles/popup.css`: shared styling, editor layout, busy indicators and suggestion chips.
 
 ## Tests
 
@@ -96,3 +96,22 @@ Selection/paste → local parser → editable points. Explicit AI extraction sen
 ## Future module contract
 
 See AGENTS.md: separate folder, documented entry points, explicit settings toggle, no requests when disabled, cancellation and tests. Core state belongs to the popup controller; feature services should not mutate route state directly.
+
+## Feature registry and test infrastructure
+
+- `src/core/modules.js`: `ROUTE_MODULES` defines stable identifiers and default flags; `normalizeRouteModules` migrates incomplete settings without switching existing functionality off.
+- `src/core/settings.js`: `normalizeRouteSettings` also returns normalized module flags; `readRouteSettings` reads browser-local settings.
+- `src/ui/options.js`: `currentModules` collects switches; options save/delete-key flows retain flags, keys, provider model choices and custom prompt.
+- `tests/helpers/browser.cjs`: `launchOptions` chooses a test browser; `artifactPath` creates ignored test-artifact paths.
+- `scripts/check-extension.cjs`: validates manifest/page paths, script load order, runtime/package version agreement and JavaScript syntax.
+- `scripts/run-browser-tests.cjs`: runs all `*.browser.cjs` scripts sequentially and propagates failures.
+- `package.json` / `package-lock.json`: pinned development tooling; no production runtime packages.
+- `.github/workflows/ci.yml`: runs validation, unit tests and browser tests on feature/fix/main pushes and pull requests, with read-only contents permission.
+- `.github/pull_request_template.md`: required review context and owner-approval reminder.
+- `.gitignore`: excludes secrets, browser state, dependencies and generated files.
+
+## Optional feature boundaries
+
+Service modules validate data and issue provider requests; the popup controller owns editable route state and DOM. Optional features do not own or overwrite local routes. Disabling a feature cancels/discards active work through the settings-change listeners. Postal lookup off means copy formats the existing points without network calls. Hub suggestions off hides its endpoint controls/results. AI extraction off hides its button and rejects the keyboard/API path. The disabled postal experiment rejects direct-page execution.
+
+Root HTML pages deliberately remain at the same URLs. The background worker path is explicitly updated in the manifest. This is a no-bundler extension: ordered local script tags establish dependencies, with the module registry loaded before settings.

@@ -2,6 +2,15 @@
 const hubModelInput = document.getElementById('hub-model');
 document.getElementById('hub-prompt').value = HUB_PROMPT;
 const form = document.getElementById('settings-form');
+const moduleInputs = new Map();
+for (const [id, module] of Object.entries(ROUTE_MODULES)) {
+  const label = document.createElement('label'); label.className = 'mode-option';
+  const input = document.createElement('input'); input.type = 'checkbox'; input.id = 'module-' + id; input.checked = module.defaultEnabled;
+  const text = document.createElement('span'); text.textContent = module.label;
+  label.append(input, text); document.getElementById('module-settings').append(label); moduleInputs.set(id, input);
+}
+function currentModules() {return Object.fromEntries([...moduleInputs].map(([id, input]) => [id, input.checked]));}
+
 const promptInput = document.getElementById('prompt-preview');
 const promptStatus = document.getElementById('prompt-status');
 const resetPromptButton = document.getElementById('reset-prompt');
@@ -25,7 +34,7 @@ function captureProfile() {
 }
 function currentSettings() {
   captureProfile();
-  return {mode: form.elements.mode.value, provider: selectedProvider, profiles, hubModel: hubModelInput.value, customPrompt: promptInput.value === AI_ROUTE_PROMPT ? null : promptInput.value, ...profiles[selectedProvider]};
+  return {mode: form.elements.mode.value, provider: selectedProvider, profiles, modules: currentModules(), hubModel: hubModelInput.value, customPrompt: promptInput.value === AI_ROUTE_PROMPT ? null : promptInput.value, ...profiles[selectedProvider]};
 }
 function showProvider() {
   const provider = aiProvider(selectedProvider), profile = profiles[selectedProvider];
@@ -50,6 +59,7 @@ function showMode() {
   customModelInput.disabled = !loaded || !ai || !custom;
   customModelInput.required = ai && custom;
   keyInput.required = ai;
+  for (const input of moduleInputs.values()) input.disabled = !loaded;
   hubModelInput.disabled = !loaded || !ai;
   promptInput.disabled = !loaded; resetPromptButton.disabled = !loaded;
   testButton.disabled = !loaded || !ai || !!connectionController;
@@ -120,8 +130,9 @@ form.addEventListener('submit', async event => {
     validatePrompt();
     if (settings.mode === 'ai') validateSettings(settings);
     saveButton.disabled = true;
-    await chrome.storage.local.set({routeSettings: {mode: settings.mode, provider: settings.provider, profiles: settings.profiles, customPrompt: settings.customPrompt, hubModel: settings.hubModel}});
+    await chrome.storage.local.set({routeSettings: {mode: settings.mode, provider: settings.provider, profiles: settings.profiles, customPrompt: settings.customPrompt, hubModel: settings.hubModel, modules: settings.modules}});
     promptStatus.textContent = settings.customPrompt === null ? 'Zapisano instrukcję domyślną.' : 'Zapisano Twoją instrukcję — będzie używana przy każdej analizie AI.';
+    document.getElementById('postal-lab-link').hidden = !settings.modules.postalLab;
     settingsStatus.textContent = 'Ustawienia zapisane. Będą użyte przy następnym rozpoznaniu trasy.';
   } catch (error) { settingsStatus.textContent = 'Nie udało się zapisać ustawień. ' + error.message; }
   finally { saveButton.disabled = false; }
@@ -133,7 +144,7 @@ deleteButton.addEventListener('click', async () => {
     const saved = await readRouteSettings();
     saved.profiles[deletingProvider].apiKey = '';
     const mode = saved.provider === deletingProvider ? 'local' : saved.mode;
-    await chrome.storage.local.set({routeSettings: {mode, provider: saved.provider, profiles: saved.profiles, customPrompt: saved.customPrompt, hubModel: saved.hubModel}});
+    await chrome.storage.local.set({routeSettings: {mode, provider: saved.provider, profiles: saved.profiles, customPrompt: saved.customPrompt, hubModel: saved.hubModel, modules: saved.modules}});
     profiles[deletingProvider].apiKey = '';
     if (selectedProvider === deletingProvider) { keyInput.value = ''; form.elements.mode.value = 'local'; showMode(); }
     settingsStatus.textContent = 'Usunięto klucz: ' + aiProvider(deletingProvider).name + '. Pozostałe klucze zachowano.';
@@ -143,6 +154,8 @@ deleteButton.addEventListener('click', async () => {
   saveButton.disabled = true; showMode();
   try {
     const settings = await readRouteSettings();
+    for (const [id, input] of moduleInputs) input.checked = settings.modules[id];
+    document.getElementById('postal-lab-link').hidden = !settings.modules.postalLab;
     hubModelInput.value = settings.hubModel;
     promptInput.value = getAiRoutePrompt(settings);
     promptStatus.textContent = settings.customPrompt === null ? 'Używana jest instrukcja domyślna.' : 'Używana jest Twoja zapisana instrukcja.';

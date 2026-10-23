@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="pl">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ustawienia — Trasa do Maps</title><link rel="stylesheet" href="popup.css"><script src="providers.js" defer></script><script src="settings.js" defer></script><script src="gemini.js" defer></script><script src="ai.js" defer></script><script src="hubs.js" defer></script><script src="options.js" defer></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ustawienia — Trasa do Maps</title><link rel="stylesheet" href="assets/styles/popup.css"><script src="src/core/providers.js" defer></script><script src="src/core/modules.js" defer></script><script src="src/core/settings.js" defer></script><script src="src/modules/ai-extraction/gemini.js" defer></script><script src="src/modules/ai-extraction/ai.js" defer></script><script src="src/modules/hub-suggestions/hubs.js" defer></script><script src="src/ui/options.js" defer></script></head>
 <body><main>
 <header><div><h1>Ustawienia</h1><p>Jak rozpoznawać punkty trasy?</p></div></header>
 <form id="settings-form">
@@ -8,6 +8,7 @@
 <label class="mode-option"><input type="radio" name="mode" value="local" checked><span><strong>Tylko lokalnie</strong><small>Wbudowany kod. Bez klucza, bez internetu i bez opłat za API.</small></span></label>
 <label class="mode-option"><input type="radio" name="mode" value="ai"><span><strong>Lokalnie + AI na kliknięcie</strong><small>Najpierw parser lokalny. Przycisk „Rozpoznaj przez AI” uruchamia wybrany model.</small></span></label>
 </fieldset>
+<fieldset><legend>Moduły</legend><div id="module-settings"></div></fieldset>
 <section id="ai-settings" hidden>
 <label class="setting-label" for="provider">Dostawca AI</label>
 <select class="setting-input" id="provider"></select>
@@ -42,7 +43,7 @@
 <p>Wtyczka sprawdza format odpowiedzi i pokazuje punkty do korekty. Nie sprawdza geograficznej poprawności kodów.</p>
 </details>
 </section>
-<p><a href="postal-lab.html" target="_blank" rel="noopener">Eksperyment: sprawdzanie kodów w sieci ↗</a></p>
+<p id="postal-lab-link"><a href="postal-lab.html" target="_blank" rel="noopener">Eksperyment: sprawdzanie kodów w sieci ↗</a></p>
 <p id="settings-status" role="status" aria-live="polite"></p>
 <button id="save-settings" type="submit" class="primary">Zapisz ustawienia</button>
 </form>

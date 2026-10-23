@@ -1,8 +1,9 @@
+const {launchOptions, artifactPath}=require('./helpers/browser.cjs');
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const path=require('node:path');
 (async()=>{
- const browser=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
+ const browser=await chromium.launch(launchOptions());
  try {
   const page=await browser.newPage();let calls=0;
   await page.addInitScript(()=>{

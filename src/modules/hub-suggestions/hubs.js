@@ -32,6 +32,7 @@ function validateHubSuggestions(result) {
   return accepted.sort((a,b) => HUB_LABELS.indexOf(a.label) - HUB_LABELS.indexOf(b.label));
 }
 async function findRouteHubs(route, role, settings, signal) {
+  if (settings.modules?.hubSuggestions === false) throw new Error('Moduł sugestii jest wyłączony.');
   if (settings.mode !== 'ai') throw new Error('Włącz tryb AI w ustawieniach.');
   const key = settings.profiles?.groq?.apiKey?.trim();
   if (!key) throw new Error('Dodaj klucz Groq w ustawieniach.');

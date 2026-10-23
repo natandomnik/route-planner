@@ -1,5 +1,5 @@
 const {test}=require('node:test');const assert=require('node:assert/strict');
-const {validateHubSuggestions,findRouteHubs}=require('../hubs.js');
+const {validateHubSuggestions,findRouteHubs}=require('../src/modules/hub-suggestions/hubs.js');
 const item=(label,city='Kassel',roadKm=45)=>({label,city,country:'DE',postcode:'34123',roadKm,reason:'Strefa logistyczna',sources:['https://www.kassel.de/']});
 test('filters duplicates, unconfirmed codes and points outside distance limits',()=>{
  const suggestions=[item('N'),item('HUB 1'),item('S','Other',116),{...item('W','Other'),postcode:'34'}, {...item('E','Other'),sources:[]},item('L','Neighbour',9),item('HUB 2','Second hub',80)];

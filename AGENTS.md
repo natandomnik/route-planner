@@ -14,6 +14,7 @@
 - `main` is the stable branch. Work on `feature/<topic>` or `fix/<topic>`.
 - Never merge to `main`, enable auto-merge, or directly push feature changes to `main` without explicit owner approval for that change.
 - The initial repository bootstrap and initial stable import are authorized by the repository setup request; this is not permission for later merges.
+- Develop and test locally first. Do not push commits, branches, tags, or publish releases without explicit owner approval. Local commits are allowed.
 - Do not rewrite published history or force-push without explicit approval.
 - Use Conventional Commits: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `build`, or `ci`, with an optional scope.
 - Prepare reviewable commits/PRs with a concrete behavior summary, validation and known limitations.

@@ -1,11 +1,15 @@
+const {launchOptions, artifactPath}=require('./helpers/browser.cjs');
 const {chromium}=require('playwright');const assert=require('node:assert/strict');const path=require('node:path');
 (async()=>{
- const browser=await chromium.launch({headless:true,executablePath:'/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
+ const browser=await chromium.launch(launchOptions());
  try {
  const page=await browser.newPage({viewport:{width:550,height:950}});let calls=0,hold=false,release,sent;
+ const data={"routeSettings":{"mode":"ai","provider":"groq","customPrompt":"Custom prompt","profiles":{"groq":{"apiKey":"fake-key"}}}};
+ await page.exposeBinding('testStorageGet',(_source,k)=>({[k]:data[k]}));
+ await page.exposeBinding('testStorageSet',(_source,v)=>{Object.assign(data,v);});
+ await page.exposeBinding('testStorageRemove',(_source,k)=>{delete data[k];});
  await page.addInitScript(()=>{
-  const data=JSON.parse(localStorage.getItem('hub-test')||'{"routeSettings":{"mode":"ai","provider":"groq","customPrompt":"Custom prompt","profiles":{"groq":{"apiKey":"fake-key"}}}}');
-  const area={get:async k=>({[k]:data[k]}),set:async obj=>{Object.assign(data,obj);localStorage.setItem('hub-test',JSON.stringify(data));},remove:async k=>delete data[k]};
+  const area={get:k=>window.testStorageGet(k),set:async obj=>{await window.testStorageSet(obj);},remove:k=>window.testStorageRemove(k)};
   window.chrome={storage:{local:area,session:area,onChanged:{addListener:()=>{}}}};
  });
  await page.route('https://api.groq.com/**',async route=>{
@@ -26,7 +30,7 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  await page.locator('.hub-toggle[data-role="A"]').click();assert.equal(calls,1);
  await page.locator('.hub-toggle[data-role="B"]').click();await page.locator('#hub-panel-B .hub-chip').first().waitFor();
  assert.equal(JSON.parse(sent.messages[1].content).anchor,'39-100 Ropczyce, Poland');assert.equal(calls,2);
- await page.screenshot({path:'/tmp/route-hub-suggestions.png'});
+ await page.screenshot({path:artifactPath('route-hub-suggestions.png')});
  await page.locator('#point-1').fill('Poznań, Poland');assert.ok(await page.locator('#hub-panel-A').isHidden());assert.ok(await page.locator('#hub-panel-B').isHidden());
  hold=true;await page.locator('.hub-toggle[data-role="A"]').click();await page.waitForTimeout(100);
  assert.equal(await page.locator('.hub-toggle[data-role="A"]').getAttribute('aria-busy'),'true');

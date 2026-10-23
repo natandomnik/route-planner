@@ -1,14 +1,20 @@
+const {launchOptions, artifactPath}=require('./helpers/browser.cjs');
 // Run with Playwright available in NODE_PATH. Uses an isolated profile and fake API responses.
 const {chromium}=require('playwright');
 const assert=require('node:assert/strict');
 const path=require('node:path');
 (async()=>{
- const browser=await chromium.launch({headless:true,executablePath:process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'});
+ const browser=await chromium.launch(launchOptions());
  try {
   const context=await browser.newContext({viewport:{width:600,height:1100}});
+  // Keep the fake extension storage outside the document, as Chrome does.
+  // file:// localStorage persistence differs between browser builds.
+  const stored={routeSettings:{mode:'ai',provider:'groq',profiles:{groq:{model:'openai/gpt-oss-20b',apiKey:'fake-key'}}}};
+  await context.exposeBinding('testStorageGet',(_source,key)=>({[key]:stored[key]}));
+  await context.exposeBinding('testStorageSet',(_source,value)=>{Object.assign(stored,value);});
+  await context.exposeBinding('testStorageRemove',(_source,key)=>{delete stored[key];});
   await context.addInitScript(()=>{
-   const stored=JSON.parse(localStorage.getItem('local-ai-test')||'{"routeSettings":{"mode":"ai","provider":"groq","profiles":{"groq":{"model":"openai/gpt-oss-20b","apiKey":"fake-key"}}}}');
-   const area={get:async k=>({[k]:stored[k]}),set:async v=>{Object.assign(stored,v);localStorage.setItem('local-ai-test',JSON.stringify(stored));},remove:async k=>{delete stored[k];}};
+   const area={get:k=>window.testStorageGet(k),set:v=>window.testStorageSet(v),remove:k=>window.testStorageRemove(k)};
    window.updated=[];
    Object.defineProperty(navigator, 'clipboard', {value:{writeText:async text=>{window.copiedText=text;}}});
    window.chrome={storage:{local:area,session:area,onChanged:{addListener:()=>{}}},tabs:{getCurrent:async()=>({id:42}),update:async(id,options)=>updated.push({id,...options})}};
@@ -54,7 +60,7 @@ const path=require('node:path');
   await page.evaluate(()=>chrome.storage.session.set({'selection-test':{text:'loading: DE 02826\nunloading: PL 59 900\nunloading: PL 05 870'}}));
   const selection=await context.newPage();await selection.goto(root+'popup.html?selection=test');await selection.locator('#point-2').waitFor();assert.equal(calls,3);
   assert.equal(await selection.locator('#point-1').inputValue(),'59-900, Poland');
-  await selection.screenshot({path:'/tmp/route-local-ai.png'});
+  await selection.screenshot({path:artifactPath('route-local-ai.png')});
   assert.deepEqual(errors,[]);console.log('PASS: local on input and selection without API, explicit AI on original text, waypoints, undo manual edits, failure preservation, reload without API, canceled stale result, clear.');
  } finally {await browser.close();}
 })().catch(error=>{console.error(error);process.exit(1)});

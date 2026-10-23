@@ -2,7 +2,7 @@
 
 Private Chrome/Chromium Manifest V3 extension for freight forwarders. Turns an informal transport message into an editable route, opens Google Maps in the current tab, and copies a compact list of route addresses.
 
-**Current stable version: 1.5.0.** The product interface is Polish; development documentation is English.
+**Current stable version: 1.6.0** ([release](https://github.com/natandomnik/Trasa-do-Maps/releases/tag/v1.6.0)). The product interface is Polish; development documentation is English.
 
 ## Features
 
@@ -35,22 +35,56 @@ API keys belong only in extension settings. They are stored in `chrome.storage.l
 - `fix/<topic>`: bug fixes.
 - Use Conventional Commits, for example `feat(hubs): add search-area toggle`.
 - Every release updates `manifest.json`, `CHANGELOG.md`, and has an annotated `vX.Y.Z` tag.
+- Develop and test locally first. Push branches, tags or releases only after explicit owner approval. Local commits are allowed.
 - **Do not merge into `main` without the owner's explicit approval.**
 
 See [AGENTS.md](AGENTS.md), [architecture](docs/ARCHITECTURE.md), [release process](docs/RELEASING.md), and [changelog](CHANGELOG.md).
 
 ## Tests
 
-Run unit tests with Node.js:
+Use Node.js 22 or newer:
 
 ```sh
-node --test tests/*.test.cjs
+npm ci
+npx playwright install chromium
+npm run test:all
 ```
 
-Browser tests in `tests/*.browser.cjs` use Playwright and fake API responses. The original snapshot uses a local Chrome path; portable test tooling is being prepared on the modularization feature branch. Live model quality is not proven by mocked browser tests.
+`npm run check` checks entry points, script loading, versions and syntax. `npm test` runs unit tests. `npm run test:browser` runs browser regressions with fake API responses. `CHROME_PATH` can select an installed browser; otherwise Playwright Chromium is used (installed Chrome is also detected on macOS). Test output is ignored under `test-results/`.
+
+## Project layout
+
+```text
+manifest.json                 Runtime version and extension entry points
+popup.html / options.html     Stable root page URLs
+postal-lab.html               Stable experiment page URL
+src/background.js             Context-menu service worker
+src/core/                     Parser, providers, settings and module registry
+src/ui/                       Popup and settings controllers
+src/modules/ai-extraction/    Provider adapters and extraction instruction
+src/modules/postal-lookup/    Postal research service used by copy
+src/modules/hub-suggestions/  Endpoint carrier-search areas
+src/modules/postal-lab/       Isolated experiment controller
+assets/styles/                Shared product styling
+tests/                        Unit and mocked browser checks
+scripts/                      Portable validation/test runners
+docs/                         Architecture, module contract and release process
+docs/legacy/                  Preserved original Polish notes
+.github/                      Pull request template and CI
+```
+
+## Optional modules
+
+Settings → **Moduły** contains independent switches for AI extraction, postal lookup on copy, A/B suggestions and the postal experiment. All default to enabled for existing installations. Disabling them does not remove saved keys or the custom prompt. Ordinary local parsing, manual route editing, Google Maps opening and plain clipboard export remain available. AI mode is still a separate prerequisite for production network features.
+
+See [module development contract](docs/MODULES.md) and each module's README. Module flags are centralized in `src/core/modules.js` and persisted in `routeSettings.modules`.
 
 ## Legacy notes
 
-[INSTALACJA.md](INSTALACJA.md) contains the original Polish installation/version notes. [TEST-KODOW.md](TEST-KODOW.md) records the exploratory postal-code experiment. They are preserved as historical documents; current development guidance is in the English docs.
+[INSTALACJA.md](docs/legacy/INSTALACJA.md) contains the original Polish installation/version notes. [TEST-KODOW.md](docs/legacy/TEST-KODOW.md) records the exploratory postal-code experiment. They are preserved as historical documents; current development guidance is in the English docs.
 
 No public/open-source license is granted by this repository.
+
+## GitHub configuration
+
+The repository is private and auto-merge is disabled. Server-side protection of main was rejected by GitHub because this account requires Pro for protected private branches. See [setup status](docs/GITHUB-SETUP.md). No feature PR may be merged without explicit owner approval.

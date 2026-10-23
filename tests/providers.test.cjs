@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 function context(fetch) {
  const ctx = vm.createContext({fetch, setTimeout, clearTimeout});
- for (const file of ['providers.js','settings.js','gemini.js','ai.js']) vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),ctx);
+ for (const file of ['src/core/providers.js','src/core/modules.js','src/core/settings.js','src/modules/ai-extraction/gemini.js','src/modules/ai-extraction/ai.js']) vm.runInContext(fs.readFileSync(path.join(__dirname,'..',file),'utf8'),ctx);
  return ctx;
 }
 const result = {points:['Warszawa','Berlin','Warszawa'],warnings:[]};
