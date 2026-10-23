@@ -4,6 +4,14 @@ Versions follow semantic versioning. Dates use Europe/Warsaw. Commit messages fo
 
 ## [Unreleased]
 
+### Added
+
+- Declarative `data-module="<moduleId>"` binding in options for module-dependent option sections, prompt accordions and external links (`postalLab`, `hubSuggestions`, `aiExtraction`).
+
+### Changed
+
+- Settings UI dynamically toggles module prompt accordions and configuration fields immediately when a module is enabled or disabled, keeping disabled modules' prompt editors and controls hidden.
+
 ## [1.6.0] - 2026-10-23
 
 ### Added

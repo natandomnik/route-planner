@@ -8,6 +8,7 @@ for (const [id, module] of Object.entries(ROUTE_MODULES)) {
   const input = document.createElement('input'); input.type = 'checkbox'; input.id = 'module-' + id; input.checked = module.defaultEnabled;
   const text = document.createElement('span'); text.textContent = module.label;
   label.append(input, text); document.getElementById('module-settings').append(label); moduleInputs.set(id, input);
+  input.addEventListener('change', () => { resetConnection(); showMode(); });
 }
 function currentModules() {return Object.fromEntries([...moduleInputs].map(([id, input]) => [id, input.checked]));}
 
@@ -53,16 +54,28 @@ function showProvider() {
 }
 function showMode() {
   const ai = form.elements.mode.value === 'ai', custom = modelInput.value === 'custom';
+  const modules = currentModules();
   document.getElementById('ai-settings').hidden = !ai;
   document.getElementById('custom-model-box').hidden = !custom;
+  for (const [id, input] of moduleInputs) {
+    const isEnabled = input.checked;
+    const elements = document.querySelectorAll(`[data-module="${id}"], #module-options-${id}`);
+    for (const el of elements) {
+      el.hidden = !isEnabled;
+      for (const control of el.querySelectorAll('input, select, textarea, button')) {
+        control.disabled = !loaded || !isEnabled || (!ai && el.closest('#ai-settings') !== null);
+      }
+    }
+  }
   for (const input of [providerInput, modelInput, keyInput]) input.disabled = !loaded || !ai;
   customModelInput.disabled = !loaded || !ai || !custom;
   customModelInput.required = ai && custom;
   keyInput.required = ai;
   for (const input of moduleInputs.values()) input.disabled = !loaded;
-  hubModelInput.disabled = !loaded || !ai;
-  promptInput.disabled = !loaded; resetPromptButton.disabled = !loaded;
-  testButton.disabled = !loaded || !ai || !!connectionController;
+  hubModelInput.disabled = !loaded || !ai || !modules.hubSuggestions;
+  promptInput.disabled = !loaded || !modules.aiExtraction;
+  resetPromptButton.disabled = !loaded || !modules.aiExtraction;
+  testButton.disabled = !loaded || !ai || !modules.aiExtraction || !!connectionController;
   deleteButton.disabled = !loaded || !ai;
 }
 function connectionMessage(text, state = '') {
@@ -93,12 +106,12 @@ function validatePrompt() {
   if (promptInput.value.length > 20000) throw new Error('Instrukcja AI może mieć maksymalnie 20 000 znaków.');
 }
 function validateSettings(settings) {
-  validatePrompt();
+  if (settings.modules?.aiExtraction !== false) validatePrompt();
   if (!settings.apiKey) throw new Error('Wpisz klucz API dostawcy ' + aiProvider(settings.provider).name + '.');
   if (!/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,127}$/.test(settings.model)) throw new Error('Wpisz poprawny identyfikator modelu.');
 }
 testButton.addEventListener('click', async () => {
-  if (!loaded || connectionController) return;
+  if (!loaded || connectionController || !currentModules().aiExtraction) return;
   const settings = currentSettings();
   try { validateSettings(settings); } catch (error) { connectionMessage(error.message, 'error'); return; }
   const id = ++connectionRun, controller = new AbortController(); connectionController = controller;
@@ -127,12 +140,12 @@ form.addEventListener('submit', async event => {
   event.preventDefault(); if (!loaded) return;
   const settings = currentSettings();
   try {
-    validatePrompt();
+    if (settings.modules.aiExtraction) validatePrompt();
     if (settings.mode === 'ai') validateSettings(settings);
     saveButton.disabled = true;
     await chrome.storage.local.set({routeSettings: {mode: settings.mode, provider: settings.provider, profiles: settings.profiles, customPrompt: settings.customPrompt, hubModel: settings.hubModel, modules: settings.modules}});
     promptStatus.textContent = settings.customPrompt === null ? 'Zapisano instrukcję domyślną.' : 'Zapisano Twoją instrukcję — będzie używana przy każdej analizie AI.';
-    document.getElementById('postal-lab-link').hidden = !settings.modules.postalLab;
+    showMode();
     settingsStatus.textContent = 'Ustawienia zapisane. Będą użyte przy następnym rozpoznaniu trasy.';
   } catch (error) { settingsStatus.textContent = 'Nie udało się zapisać ustawień. ' + error.message; }
   finally { saveButton.disabled = false; }
@@ -155,7 +168,6 @@ deleteButton.addEventListener('click', async () => {
   try {
     const settings = await readRouteSettings();
     for (const [id, input] of moduleInputs) input.checked = settings.modules[id];
-    document.getElementById('postal-lab-link').hidden = !settings.modules.postalLab;
     hubModelInput.value = settings.hubModel;
     promptInput.value = getAiRoutePrompt(settings);
     promptStatus.textContent = settings.customPrompt === null ? 'Używana jest instrukcja domyślna.' : 'Używana jest Twoja zapisana instrukcja.';
