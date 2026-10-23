@@ -68,6 +68,16 @@ legend { font-weight: 600; padding: 0 6px; }
 .saved-key-preview[data-state="pending"] { color: #8a5814; }
 .saved-key-preview[data-state="empty"] { color: var(--route-muted); font-style: italic; font-family: inherit; }
 
+.key-links { margin: 4px 0 10px; }
+#get-api-key { display: inline-block; font-size: 13px; font-weight: 600; color: var(--route-ink); text-decoration: underline; text-underline-offset: 3px; }
+#get-api-key:hover { color: #24544b; }
+
+#delete-key.danger-button,
+.danger-button { color: var(--route-error); font-weight: 500; }
+#delete-key.danger-button:hover:not(:disabled),
+.danger-button:hover:not(:disabled) { color: #b24b36; text-decoration: underline; }
+#delete-key.danger-button:focus-visible { outline: 2px solid var(--route-error); outline-offset: 2px; }
+
 .prompt-preview { font-family: ui-monospace, monospace; font-size: 12px; line-height: 1.6; min-height: 260px; }
 .analysis-code { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 320px; overflow: auto; font-size: 12px; line-height: 1.6; padding: 10px; background: var(--route-paper); border-radius: 6px; }
 

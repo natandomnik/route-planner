@@ -15,6 +15,8 @@ Versions follow semantic versioning. Dates use Europe/Warsaw. Commit messages fo
 ### Changed
 
 - Settings UI dynamically toggles module prompt accordions and configuration fields immediately when a module is enabled or disabled, keeping disabled modules' prompt editors and controls hidden.
+- Moved the provider key generation link directly below the API key input field for immediate access.
+- Styled the provider key deletion action as a danger button with red accent.
 
 ### Fixed
 

@@ -53,13 +53,13 @@
 <label class="setting-label" id="api-key-label" for="api-key">Klucz API</label>
 <input class="setting-input" id="api-key" type="password" autocomplete="off" spellcheck="false" maxlength="512" placeholder="Wklej własny klucz API">
 <p id="saved-key-preview" class="saved-key-preview" role="status" aria-live="polite"></p>
+<div class="key-links"><a id="get-api-key" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Utwórz klucz API ↗</a></div>
 <p class="hint">Klucz jest zapisywany lokalnie w profilu Chrome, bez synchronizacji. To nie jest szyfrowany sejf. Nie wpisuj klucza w plikach wtyczki.</p>
 <div class="connection-actions"><button id="test-connection" type="button" class="primary">Sprawdź połączenie</button></div>
 <p id="connection-status" class="connection-status" role="status" aria-live="polite"></p>
 <p class="hint">Testuje wybranego dostawcę, klucz i model, bez zapisywania zmian. Wysyła krótką przykładową trasę, bez danych Twojego zlecenia. Test zużywa niewielką liczbę tokenów API.</p>
-<button id="delete-key" type="button" class="text-button">Usuń klucz tego dostawcy</button>
+<button id="delete-key" type="button" class="text-button danger-button">Usuń klucz tego dostawcy</button>
 <p class="hint" id="provider-privacy"></p><p class="hint">Wklejony lub zaznaczony tekst jest najpierw analizowany lokalnie. AI działa dopiero po kliknięciu „Rozpoznaj przez AI” lub użyciu skrótu Ctrl / ⌘ + Enter. Dostawcę zmieniasz ręcznie; wtyczka nie przełącza go po błędzie. Wybranie OpenRouter Free Router pozwala tej usłudze dobrać darmowy model.</p>
-<a id="get-api-key" href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer">Utwórz klucz API ↗</a>
 </section>
 <p id="settings-status" role="status" aria-live="polite"></p>
 <button id="save-settings" type="submit" class="primary">Zapisz ustawienia</button>
