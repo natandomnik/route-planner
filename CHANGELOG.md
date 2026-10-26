@@ -2,6 +2,22 @@
 
 Versions follow semantic versioning. Dates use Europe/Warsaw. Commit messages follow Conventional Commits.
 
+## [Unreleased]
+
+## [1.7.1] - 2026-10-26
+
+### Changed
+
+- Published the existing English default route-extraction instruction, retaining the JSON contract, Polish warnings, multi-stop examples and incomplete-postcode handling.
+- Published the existing revised A/B suggestion instruction: infer the anchor country from route context when necessary, prioritize geographical knowledge with limited search, and aim for seven distinct search areas within 10–115 km.
+- Preserved the complete modular project structure and all existing implementation files without further runtime edits.
+
+### Validation
+
+- 48 unit tests and five browser suites passed with mocked provider responses.
+- Geographic accuracy, source validity and live provider availability were not tested. The revised hub prompt allows inferred locations and model knowledge; suggestions remain estimates.
+- Saved custom extraction prompts remain in use and are not overwritten by the updated default.
+
 ## [1.7.0] - 2026-10-23
 
 ### Added
