@@ -1,6 +1,6 @@
 {
   "name": "trasa-do-maps",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "private": true,
   "description": "Private Chromium freight route preparation extension",
   "engines": {"node": ">=22"},
