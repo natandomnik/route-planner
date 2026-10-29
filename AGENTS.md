@@ -1,5 +1,15 @@
 # Repository instructions
 
+## Project identity and language workflow
+
+- The product name is **Route Planner**. Use this name in the extension manifest, page titles, documentation and new feature descriptions.
+- The owner writes development requests in Polish. Interpret their requirements in English before implementation, preserving intent, constraints and acceptance criteria. Do not require the owner to provide an English translation.
+- Write agent instructions, technical specifications, engineering documentation, new code comments, commit messages and built-in LLM system instructions in English.
+- Respond to the owner in Polish and keep product UI messages in Polish unless explicitly requested otherwise.
+- This language workflow is not an additional translation API step. Preserve original route input, place names, postal codes, quoted examples and identifiers; they are data, not development instructions.
+- Preserve existing saved custom prompts verbatim. Translate a custom prompt only when the owner explicitly asks to translate that prompt.
+- Keep historical repository URLs, filenames, tags and backup paths unchanged unless their targets are actually renamed.
+
 ## Scope and safety
 
 - Preserve existing product behavior unless the owner requests a change.

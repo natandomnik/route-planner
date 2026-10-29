@@ -17,6 +17,7 @@ runButton.addEventListener('click', async () => {
   const started = performance.now(), timer = setTimeout(() => controller.abort(), 120000);
   try {
     const settings = await readRouteSettings();
+    if (settings.provider === 'offline') throw new Error('Tryb offline: weryfikacja kodów w sieci jest wyłączona.');
     controller.signal.throwIfAborted();
     if (settings.modules.postalLab === false) throw new Error('Moduł testów kodów jest wyłączony.');
     const rows = await runPostalTest(settings.profiles.groq.apiKey, controller.signal);

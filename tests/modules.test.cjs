@@ -4,7 +4,7 @@ const {normalizeRouteModules} = require('../src/core/modules.js');
 const {findRouteHubs} = require('../src/modules/hub-suggestions/hubs.js');
 const vm = require('node:vm');const fs = require('node:fs');const path = require('node:path');
 test('legacy installs retain enabled features and only explicit booleans override defaults', () => {
- assert.deepEqual(normalizeRouteModules(), {aiExtraction:true,postalLookup:true,hubSuggestions:true,postalLab:true});
+ assert.deepEqual(normalizeRouteModules(), {timocom:true,suggestionMap:true,recognitionHistory:true,aiExtraction:true,postalLookup:true,hubSuggestions:true,postalLab:true});
  assert.equal(normalizeRouteModules({postalLookup:false}).postalLookup,false);
  assert.equal(normalizeRouteModules({postalLookup:'false'}).postalLookup,true);
  assert.equal(normalizeRouteModules(null).hubSuggestions,true);

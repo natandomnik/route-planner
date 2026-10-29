@@ -1,7 +1,7 @@
-/* Parser tekstowych tras transportowych. Nie wymaga API ani bibliotek.
- * Zastąp nim stary blok od POSTAL_CODE_PATTERNS do module.exports.
- * parseAddresses(text) zachowuje dotychczasowy wynik: tablica tekstów.
- * parseTransportRoute(text) dodatkowo zwraca ostrzeżenia i pominięte prefiksy.
+/* Transport route text parser. Requires no APIs or libraries.
+ * Standalone parser with browser globals and CommonJS exports.
+ * parseAddresses(text) preserves the existing result: an array of strings.
+ * parseTransportRoute(text) also returns warnings and omitted prefixes.
  */
 const TransportMaps = (() => {
   const codes = 'AD AE AF AG AI AL AM AO AQ AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BV BW BY BZ CA CC CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GS GT GU GW GY HK HM HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE RO RS RU RW SA SB SC SD SE SG SH SI SJ SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TF TG TH TJ TK TL TM TN TO TR TT TV TW TZ UA UG UM US UY UZ VA VC VE VG VI VN VU WF WS YE YT ZA ZM ZW UK XK'.split(' ');
@@ -9,7 +9,7 @@ const TransportMaps = (() => {
   const countryName = c => names.of(c === 'UK' ? 'GB' : c);
   const countryStart = new RegExp('^(' + codes.join('|') + ')(?=\\d|[\\s,-]|$)[,\\s-]*', 'i');
   const countryEnd = new RegExp(',\\s*(' + codes.join('|') + ')$', 'i');
-  // Sprawdzamy format, nie istnienie kodu w bazie pocztowej.
+  // Validate format, not the existence of a code in a postal database.
   const formats = {
     PL: /^\d{2}-?\d{3}$/, DE: /^\d{5}$/, BE: /^\d{4}$/,
     CZ: /^\d{3}\s?\d{2}$/, SK: /^\d{3}\s?\d{2}$/,
@@ -29,15 +29,15 @@ const TransportMaps = (() => {
   const unloadKeys = new Set(['unloading','unloadingaddress','unloadingplace','deliveryplace','delivery','deliveryaddress','dropoff','rozladunek','miejsce rozladunku','adresrozladunku'].map(foldKey));
   const metadataKeys = new Set(['loadingDate','unloadingDate','loadingTime','unloadingTime','pickupDate','deliveryDate','date','time','data','godzina','weight','waga','grossWeight','netWeight','quantity','ilosc','pallets','palety','ldm','adr','reference','referenceNumber','orderNumber','numerReferencyjny','nrZlecenia','cargo','ladunek','goods','towar','notes','uwagi','contact','kontakt','phone','telefon','email','price','cena','currency','waluta','vehicle','pojazd'].map(foldKey));
 
-  // Czytaj strukturę PRZED usuwaniem dat i białych znaków.
+  // Read structure BEFORE removing dates and whitespace.
   function readFields(input) {
     const source = String(input ?? '').normalize('NFC').replace(/\r\n?/g, '\n').replace(/\*\*/g, '')
       .replace(new RegExp('^(delivery|unloading|loading|pickup) place[^\\n]*?\\bin\\s+(?=(?:' + codes.join('|') + ')[ ,\\d-])', 'gim'), '$1: ');
-    // Obsługa kilku pól w jednej linii. Zwykła godzina 08:00 nie jest kluczem.
+    // Support multiple fields on one line. A plain time such as 08:00 is not a key.
     const lines = source.replace(/([ \t;]+)((?:(?:loading|unloading|pickup|delivery)[ \t]+(?:date|time|address)|[\p{L}][\p{L}\d_-]*)[ \t]*:)(?!\/\/)/giu,
       (match, space, key, offset) => {
         const before = source.slice(source.lastIndexOf('\n', offset - 1) + 1, offset);
-        // Uwagi/opis mogą zawierać słowo „delivery:”; nie twórz z niego punktu.
+        // Notes/descriptions may contain "delivery:"; do not turn it into a stop.
         if (/(?:^|\s)(?:notes|uwagi|cargo|goods|towar|description|opis)\s*:/i.test(before)) return match;
         return before.includes(':') ? '\n' + key : match;
       }).split('\n');
@@ -91,7 +91,7 @@ const TransportMaps = (() => {
     const marked = text
       .replace(/\b(?:Załadunek|Rozładunek|Loading|Unloading|Pickup|Delivery)\b\s*\d*\s*:?/gi, '\n|\n')
       .replace(/\s*(?:->|[➞→⟶⇒➔➜►>]+|-{2,})\s*|\s+-\s+|(?:^|\s+)(?:do|to|then|potem|następnie)\s+/gi, '\n|\n')
-      // Pojedynczy myślnik rozdziela tylko przed następnym krajem z kodem.
+      // A single hyphen separates only before the next country and postcode.
       .replace(new RegExp('-(?=' + countryNumeric + ')', 'gi'), '|')
       .replace(new RegExp('[ \t]+(?=' + countryNumeric + ')', 'gi'), '|');
     const out = [];
@@ -115,7 +115,7 @@ const TransportMaps = (() => {
     const warnings = [];
     let country = null;
     let street = '';
-    // Ulica przed linią KRAJ KOD MIASTO pozostaje częścią tego samego punktu.
+    // A street before a COUNTRY POSTCODE CITY line remains part of the same stop.
     const embedded = body.match(new RegExp(',\\s*((?:' + codes.join('|') + ')[ ,\\d-].*)$', 'i'));
     if (embedded && !countryStart.test(body)) {
       street = body.slice(0, embedded.index).trim(); body = embedded[1];
@@ -159,7 +159,7 @@ const TransportMaps = (() => {
     }
     body = body.replace(/^,+|,+$/g, '').trim();
     body = options.cityAliases?.[body.toLocaleLowerCase('pl')] || body;
-    // Opcjonalne, jawne przypisania użytkownika, np. { Psary: 'PL', Kesteren: 'NL' }.
+    // Optional explicit user mappings, e.g. { Psary: 'PL', Kesteren: 'NL' }.
     if (!country && options.cityCountries) {
       const entry = Object.entries(options.cityCountries).find(([city]) => city.toLocaleLowerCase('pl') === body.toLocaleLowerCase('pl'));
       if (entry) {

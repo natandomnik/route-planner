@@ -10,12 +10,13 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  await page.exposeBinding('testStorageRemove',(_source,k)=>{delete data[k];});
  await page.addInitScript(()=>{
   const area={get:k=>window.testStorageGet(k),set:async obj=>{await window.testStorageSet(obj);},remove:k=>window.testStorageRemove(k)};
+  window.copied=[];Object.defineProperty(navigator,'clipboard',{value:{writeText:async text=>window.copied.push(text)}});
   window.chrome={storage:{local:area,session:area,onChanged:{addListener:()=>{}}}};
  });
  await page.route('https://api.groq.com/**',async route=>{
   calls++;sent=route.request().postDataJSON();if(hold)await new Promise(r=>release=r);
   const item=(label,city,postcode)=>({label,city,postcode,country:'DE',roadKm:45,reason:'Strefa logistyczna',sources:['https://www.kassel.de/']});
-  await route.fulfill({json:{choices:[{finish_reason:'stop',message:{content:JSON.stringify({suggestions:[item('N','Paderborn','33098'),item('HUB 1','Kassel','34123')]})}}]}}).catch(()=>{});
+  await route.fulfill({json:{choices:[{finish_reason:'stop',message:{content:JSON.stringify({suggestions:[item(JSON.parse(sent.messages[1].content).strategy === 'corridor' ? 'ZJAZD' : 'N','Paderborn','33098'),item('HUB 1','Kassel','34123')]})}}]}}).catch(()=>{});
  });
  const errors=[];page.on('pageerror',e=>errors.push(e.message));
  const root='file://'+path.resolve(__dirname,'..')+'/';await page.goto(root+'popup.html');
@@ -24,6 +25,14 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  assert.equal(calls,0);assert.equal(await page.locator('.hub-toggle').count(),2);
  await page.locator('.hub-toggle[data-role="A"]').click();await page.locator('#hub-panel-A .hub-chip').first().waitFor();
  assert.equal(sent.model,'openai/gpt-oss-120b');assert.equal(JSON.parse(sent.messages[1].content).anchor,'34414 Warburg, Germany');
+ const chip=page.locator('#hub-panel-A .hub-chip').first();
+ assert.equal(await chip.getAttribute('data-index'),'0');
+ assert.equal(await chip.getAttribute('title'),'Strefa logistyczna');
+ assert.equal(await chip.locator('.hub-kilometers').textContent(),'45');
+ await chip.locator('.hub-chip-copy').click();await page.waitForFunction(()=>window.copied.length===1);
+ assert.equal(await page.evaluate(()=>window.copied[0]),'DE 33098 Paderborn');
+ assert.equal(await chip.evaluate(el=>el.classList.contains('is-copied')),true);
+ assert.equal(await page.locator('.hub-copy').count(),0);
  assert.equal(await page.locator('#hub-panel-A').evaluate(el=>getComputedStyle(el).display),'flex');
  assert.equal(await page.locator('#point-0').inputValue(),'34414 Warburg, Germany');
  await page.locator('.hub-toggle[data-role="A"]').click();assert.ok(await page.locator('#hub-panel-A').isHidden());
@@ -39,10 +48,20 @@ const {chromium}=require('playwright');const assert=require('node:assert/strict'
  await page.goto(root+'options.html');await page.waitForFunction(()=>!document.querySelector('#save-settings').disabled);
  assert.equal(await page.locator('#hub-model').inputValue(),'openai/gpt-oss-120b');
  await page.locator('#hub-suggestions-options > summary').click();
+ await page.locator('#hub-strategy').selectOption('corridor');
+ assert.match(await page.locator('#hub-prompt').inputValue(),/Search across nearby national borders/);
  await page.locator('#hub-model').selectOption('openai/gpt-oss-20b');await page.locator('#save-settings').click();
  await page.waitForFunction(()=>document.querySelector('#settings-status').textContent.includes('zapisane'));
  await page.reload();await page.waitForFunction(()=>!document.querySelector('#save-settings').disabled);
+ assert.equal(await page.locator('#hub-strategy').inputValue(),'corridor');
  assert.equal(await page.locator('#hub-model').inputValue(),'openai/gpt-oss-20b');assert.equal(await page.locator('#prompt-preview').inputValue(),'Custom prompt');
+ hold=false;
+ await page.goto(root+'popup.html');await page.locator('#point-0').waitFor();
+ await page.locator('.hub-toggle[data-role="B"]').click();
+ await page.locator('#hub-panel-B .hub-chip').first().waitFor();
+ assert.equal(await page.locator('#hub-panel-B .hub-strategy').count(),0);
+ assert.equal(await page.locator('#hub-panel-B .hub-chip').first().getAttribute('data-category'),'exit');
+ assert.equal(JSON.parse(sent.messages[1].content).strategy,'corridor');
  assert.deepEqual(errors,[]);console.log('PASS: endpoint-only controls, A/B anchoring, flex results, toggle cache, invalidation and cancellation, independent model persistence, custom prompt retained.');
  }finally{await browser.close();}
 })().catch(e=>{console.error(e);process.exit(1)});

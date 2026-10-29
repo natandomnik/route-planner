@@ -2,6 +2,10 @@
 async function parseWithAI(text, settings, signal, onRetry, onResponse) {
   if (settings.modules?.aiExtraction === false) throw new Error('Moduł rozpoznawania AI jest wyłączony.');
   const provider = aiProvider(settings.provider);
+  if (settings.provider === 'offline') {
+    signal?.throwIfAborted();
+    return validateAiRoute({points: ['PL 00-001 Warszawa', 'DE 10115 Berlin'], warnings: ['Dane testowe offline — stały przykład, niezależny od wpisanego tekstu.']}, provider.name);
+  }
   if (!settings.apiKey?.trim()) throw new Error('Dodaj klucz API dostawcy ' + provider.name + ' w ustawieniach.');
   if (!/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,127}$/.test(settings.model)) throw new Error('Nieprawidłowy identyfikator modelu.');
   if (settings.provider === 'gemini') return parseWithGemini(text, settings, signal, onRetry, onResponse);

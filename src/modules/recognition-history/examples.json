@@ -1,0 +1,96 @@
+{
+  "schemaVersion": 1,
+  "description": "Synthetic proposed parser cases, not employee queries or AI-verified addresses. Review before promotion to regression expectations.",
+  "examples": [
+    {
+      "id": "synthetic-01",
+      "source": "synthetic",
+      "text": "DE 57 Siegen ➞ PL 39 Ropczyce",
+      "expectedPoints": [
+        "DE 57 Siegen",
+        "PL 39 Ropczyce"
+      ],
+      "confirmed": false,
+      "note": "Preserve partial postcodes; never invent full ones."
+    },
+    {
+      "id": "synthetic-02",
+      "source": "synthetic",
+      "text": "de 02826 do pl 05 870",
+      "expectedPoints": [
+        "DE 02826",
+        "PL 05-870"
+      ],
+      "confirmed": false,
+      "note": "Country and postcode only; preserve point order."
+    },
+    {
+      "id": "synthetic-03",
+      "source": "synthetic",
+      "text": "Załadunek: Hamburg\nRozładunek: Wałbrzych",
+      "expectedPoints": [
+        "Hamburg",
+        "Wałbrzych"
+      ],
+      "confirmed": false,
+      "note": "Two labelled cities."
+    },
+    {
+      "id": "synthetic-04",
+      "source": "synthetic",
+      "text": "Hamburg -> Berlin -> Wałbrzych",
+      "expectedPoints": [
+        "Hamburg",
+        "Berlin",
+        "Wałbrzych"
+      ],
+      "confirmed": false,
+      "note": "Preserve intermediate stop."
+    },
+    {
+      "id": "synthetic-05",
+      "source": "synthetic",
+      "text": "DE 34414 Warburg / PL 55-095 Długołęka",
+      "expectedPoints": [
+        "DE 34414 Warburg",
+        "PL 55-095 Długołęka"
+      ],
+      "confirmed": false,
+      "note": "Country, full postcode and locality."
+    },
+    {
+      "id": "synthetic-06",
+      "source": "synthetic",
+      "text": "Załadunek: Hamburg\nRozładunek 1: Berlin\nRozładunek 2: Wałbrzych",
+      "expectedPoints": [
+        "Hamburg",
+        "Berlin",
+        "Wałbrzych"
+      ],
+      "confirmed": false,
+      "note": "Multiple unloading stops."
+    },
+    {
+      "id": "synthetic-07",
+      "source": "synthetic",
+      "text": "Hamburg → Wałbrzych\n24 t, firanka, cena 900 EUR",
+      "expectedPoints": [
+        "Hamburg",
+        "Wałbrzych"
+      ],
+      "confirmed": false,
+      "note": "Ignore cargo and price metadata."
+    },
+    {
+      "id": "synthetic-08",
+      "source": "synthetic",
+      "text": "BE 4000 Liège → CZ Ostrava",
+      "expectedPoints": [
+        "BE 4000 Liège",
+        "CZ Ostrava"
+      ],
+      "confirmed": false,
+      "note": "Preserve diacritics and explicit countries."
+    }
+  ]
+}

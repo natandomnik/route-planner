@@ -21,8 +21,9 @@ function normalizeRouteSettings(saved = {}) {
   const hubProvider = Object.hasOwn(AI_PROVIDERS, saved.hubProvider)
     ? saved.hubProvider
     : (typeof inferHubProvider === 'function' ? inferHubProvider(hubModel) : 'groq');
+  const strategy = saved.strategy === 'corridor' ? 'corridor' : 'radius';
   const customPrompt = typeof saved.customPrompt === 'string' && saved.customPrompt.trim() ? saved.customPrompt : null;
-  return {mode: ['ai', 'gemini'].includes(saved.mode) ? 'ai' : 'local', provider, profiles, customPrompt, hubModel, hubProvider, modules, ...profiles[provider]};
+  return {mode: ['ai', 'gemini'].includes(saved.mode) ? 'ai' : 'local', provider, profiles, customPrompt, hubModel, hubProvider, strategy, modules, ...profiles[provider]};
 }
 async function readRouteSettings() {
   const {routeSettings} = await chrome.storage.local.get('routeSettings');

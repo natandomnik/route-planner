@@ -4,6 +4,63 @@ Versions follow semantic versioning. Dates use Europe/Warsaw. Commit messages fo
 
 ## [Unreleased]
 
+## [1.8.2] - 2026-10-29
+
+### Changed
+
+- Restore the final product name Route Planner and the `route-planner` package/download names at the owner's request.
+- Consolidate all 1.8.x map, corridor, history, offline demo and TimoCom improvements into `main` through the approved pull request.
+- Preserve existing settings, history, internal identifiers and historical release tags.
+
+### Validation
+
+- Extension syntax/assets, 63 unit tests and nine mocked browser suites passed. No live provider calls were made.
+
+## [1.8.1] - 2026-10-29
+
+### Changed
+
+- Rename the extension to Road Planner in the manifest, toolbar, planner header, page titles, TimoCom action and current engineering documentation.
+- Rename the development package and downloadable ZIP/checksum assets to `road-planner`.
+- Preserve existing settings, IndexedDB history, internal message identifiers, historical releases and repository URLs for compatibility.
+
+### Validation
+
+- Extension syntax/assets, 63 unit tests and nine mocked browser suites passed. No live provider requests were used.
+
+## [1.8.0] - 2026-10-29
+
+### Added
+
+- Optional TimoCom integration: compact Route Planner and Google Maps buttons below the offer map, with new-tab arrows, hover styles and responsive wrapping. Import country/postcode/locality fields directly into ordered editable route points, scoped to the current offer and refreshed after SPA changes.
+- Optional Leaflet map panel with Geoapify geocoding and driving routes, visible once at least two route points are recognized. Display road distance above the fields and in a prominent blue map badge.
+- Local map context: Natural Earth borders and major cities, 44 logistics-town references and 47 truck-parking references, with zoom thresholds, label collision avoidance and viewport limits. These are static orientation data, not live vehicle or parking availability.
+- Corridor search strategy alongside radius search, with up to eight pickup-area and six delivery-area suggestions. Prioritize short upstream/lateral approaches, sensible cross-border access and reduced backtracking.
+- Offline demo provider for extraction and strategy-specific suggestion previews without provider API calls.
+- Optional local raw-input history captured only on explicit AI recognition, including offline demos. Provide review, redaction, deletion, clipboard export and JSON export through settings, plus a separate synthetic starter corpus for future parser regression work.
+
+### Changed
+
+- Use a two-button radius/corridor selector. A corridor action requests suggestions for both endpoints.
+- Compact suggestion chips support address copying without layout shifts and an independent distance-arrow link to the relevant Google Maps segment.
+- Keep existing map layers and viewport when additional suggestions arrive; append new points without reloading the map.
+- Render the main driving route in blue, suggestion points/roads in red and hovered suggestions in green, with prominent A/B markers and hover-only endpoint labels.
+- Improve compact empty-state layout, route input spacing, sticky route-opening actions, map tooltips and route-specific browser tab titles.
+- Remove redundant counters, strategy captions and history controls from the main planner. History exports contain source text and metadata, not generated AI answers.
+- Keep product text Polish while translating remaining parser comments and historical engineering instructions into English.
+
+### Fixed
+
+- Normalize geocoding inputs into separate country, postcode and city parameters; handle postal-only inputs, spaced national formats, trailing postcodes and partial freight region prefixes.
+- Reject wrong-country, mismatched or ambiguous geocoding results and ignore older coordinate caches. Retry unsuccessful structured lookups as free text under the same validation constraints.
+- Correct map zoom behavior and preserve chip widths during copy feedback.
+
+### Validation and limitations
+
+- Extension syntax/assets, 63 unit tests and nine mocked browser suites passed before publication. No live provider calls, real credentials or private route histories are included in the release.
+- TimoCom integration is tested against synthetic markup matching the supplied DOM contract; authenticated live-site behavior has not been independently verified.
+- Geoapify routes use driving mode and do not validate truck restrictions. LLM search-area distances remain estimates; model suggestions and static parking data do not indicate available drivers.
+
 ## [1.7.1] - 2026-10-26
 
 ### Changed
@@ -88,4 +145,4 @@ The following history is reconstructed from existing project notes, not historic
 - **1.4.1**: selected model shown in the popup.
 - **1.4.0**: editable, persistent custom AI instruction.
 
-Original notes are preserved in docs/legacy/INSTALACJA.md. Earlier archives remain outside the repository.
+Historical notes are available in English in docs/legacy/INSTALACJA.md; the original Polish text remains in Git history. Earlier archives remain outside the repository.

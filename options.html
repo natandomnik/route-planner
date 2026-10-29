@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="pl">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ustawienia — Trasa do Maps</title><link rel="stylesheet" href="assets/styles/popup.css"><script src="src/core/providers.js" defer></script><script src="src/core/modules.js" defer></script><script src="src/core/settings.js" defer></script><script src="src/modules/ai-extraction/gemini.js" defer></script><script src="src/modules/ai-extraction/ai.js" defer></script><script src="src/modules/hub-suggestions/hubs.js" defer></script><script src="src/ui/options.js" defer></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ustawienia — Route Planner</title><link rel="stylesheet" href="assets/styles/popup.css"><script src="src/core/providers.js" defer></script><script src="src/core/modules.js" defer></script><script src="src/core/settings.js" defer></script><script src="src/modules/ai-extraction/gemini.js" defer></script><script src="src/modules/ai-extraction/ai.js" defer></script><script src="src/modules/hub-suggestions/hubs.js" defer></script><script src="src/ui/options.js" defer></script></head>
 <body><main>
 <header><div><h1>Ustawienia</h1><p>Jak rozpoznawać punkty trasy?</p></div></header>
 <form id="settings-form">
@@ -10,7 +10,7 @@
 </fieldset>
 <fieldset><legend>Moduły</legend>
 <div id="module-settings"></div>
-<div id="module-accordions">
+<div id="module-accordions"><details data-module="suggestionMap"><summary>Mapa sugestii — Geoapify</summary><p>Interaktywna mapa OpenStreetMap. Po rozpoznaniu trasy adresy są wysyłane do Geoapify w celu obliczenia odległości drogowej. Otwarcie mapy dodatkowo lokalizuje sugestie. Wyniki lokalizacji są zapamiętywane przez 30 dni. Linie oznaczają relacje, nie drogi.</p><label for="map-api-key">Klucz mapowy Geoapify</label><input id="map-api-key" type="password" class="setting-input" autocomplete="off"><button id="save-map-key" type="button">Zapisz klucz mapy</button><p id="map-key-status" role="status"></p><a href="https://myprojects.geoapify.com/" target="_blank" rel="noopener">Utwórz klucz Geoapify</a></details><details data-module="recognitionHistory"><summary>Historia rozpoznawania i korekt</summary><p>Zapisuje lokalnie tylko wklejony tekst po kliknięciu „Rozpoznaj przez AI”, bez odpowiedzi modelu i bez kluczy API. Limit 500 wpisów. Wyłączenie zatrzymuje zbieranie; zapisane dane możesz usunąć w historii.</p><a href="history.html" target="_blank" rel="noopener">Otwórz bazę przykładów i eksport</a></details>
 <details id="ai-instructions" data-module="aiExtraction" data-requires-ai="true">
 <summary>Szczegóły: Rozpoznawanie trasy przez AI</summary>
 <p>Twoja instrukcja zastępuje domyślną i obowiązuje dla wszystkich dostawców. Kliknij „Zapisz ustawienia”, aby zachować ją na kolejne uruchomienia.</p>
@@ -29,6 +29,12 @@
 </details>
 <details id="hub-suggestions-options" data-module="hubSuggestions" data-requires-ai="true">
 <summary>Szczegóły: Sugestie obszarów przy A/B</summary>
+<label class="setting-label" for="hub-strategy">Strategia sugestii</label>
+<select id="hub-strategy" class="setting-input">
+<option value="radius">Promień — wokół punktu A lub B</option>
+<option value="corridor">Korytarz — model hybrydowy trasy A → B</option>
+</select>
+<p class="hint">Promień: okolice wybranego punktu. Korytarz: podjazd, punkty na trasie, huby i zjazd; kilometry od A.</p>
 <label class="setting-label" for="hub-model">Model do sugestii obszarów A/B</label>
 <select id="hub-model" class="setting-input"><option value="openai/gpt-oss-120b">GPT-OSS 120B · dokładniejsza analiza</option><option value="openai/gpt-oss-20b">GPT-OSS 20B · szybszy</option></select>
 <p class="hint" id="hub-model-hint">Wybierz model do wyszukiwania obszarów poszukiwań wokół punktów A i B. Na liście wyświetlane są modele tych dostawców, dla których skonfigurowano klucze API.</p>

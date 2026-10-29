@@ -1,6 +1,9 @@
 'use strict';
 const hubModelInput = document.getElementById('hub-model');
-document.getElementById('hub-prompt').value = HUB_PROMPT;
+const hubStrategyInput = document.getElementById('hub-strategy');
+function updateHubPrompt() { document.getElementById('hub-prompt').value = getHubPrompt(hubStrategyInput.value); }
+hubStrategyInput.addEventListener('change', updateHubPrompt);
+updateHubPrompt();
 const form = document.getElementById('settings-form');
 const moduleInputs = new Map();
 for (const [id, module] of Object.entries(ROUTE_MODULES)) {
@@ -74,12 +77,12 @@ function currentSettings() {
   captureProfile();
   const selectedHubOption = hubModelInput.selectedOptions[0];
   const hubProvider = selectedHubOption?.dataset?.provider || (typeof inferHubProvider === 'function' ? inferHubProvider(hubModelInput.value) : 'groq');
-  return {mode: form.elements.mode.value, provider: selectedProvider, profiles, modules: currentModules(), hubModel: hubModelInput.value, hubProvider, customPrompt: promptInput.value === AI_ROUTE_PROMPT ? null : promptInput.value, ...profiles[selectedProvider]};
+  return {mode: form.elements.mode.value, provider: selectedProvider, profiles, modules: currentModules(), hubModel: hubModelInput.value, hubProvider, strategy: hubStrategyInput.value, customPrompt: promptInput.value === AI_ROUTE_PROMPT ? null : promptInput.value, ...profiles[selectedProvider]};
 }
 function updateHubModels() {
   const currentVal = hubModelInput.value;
   const withKeys = Object.entries(AI_PROVIDERS).filter(([id]) => !!profiles[id]?.apiKey?.trim());
-  const providersToShow = withKeys.length > 0 ? withKeys : Object.entries(AI_PROVIDERS);
+  const providersToShow = withKeys.length > 0 ? [...withKeys.filter(([id]) => id !== 'offline'), ['offline', AI_PROVIDERS.offline]] : Object.entries(AI_PROVIDERS);
   hubModelInput.replaceChildren();
   let foundCurrent = false;
 
@@ -118,14 +121,14 @@ function showProvider() {
   const provider = aiProvider(selectedProvider), profile = profiles[selectedProvider];
   modelInput.replaceChildren();
   for (const [id, label] of provider.models) modelInput.add(new Option(label, id));
-  modelInput.add(new Option('Inny model…', 'custom'));
+  if (selectedProvider !== 'offline') modelInput.add(new Option('Inny model…', 'custom'));
   modelInput.value = provider.models.some(([id]) => id === profile.model) ? profile.model : 'custom';
   customModelInput.value = profile.model;
   keyInput.value = profile.apiKey;
   document.getElementById('provider-note').textContent = provider.note;
   document.getElementById('provider-privacy').textContent = provider.privacy;
   document.getElementById('api-key-label').textContent = 'Klucz API — ' + provider.name;
-  const link = document.getElementById('get-api-key'); link.href = provider.keyUrl;
+  const link = document.getElementById('get-api-key'); link.href = provider.keyUrl || '#';
   link.textContent = 'Utwórz klucz — ' + provider.name + ' ↗';
   updateSavedKeyPreview();
   showMode();
@@ -149,13 +152,16 @@ function showMode() {
   for (const input of [providerInput, modelInput, keyInput]) input.disabled = !loaded || !ai;
   customModelInput.disabled = !loaded || !ai || !custom;
   customModelInput.required = ai && custom;
-  keyInput.required = ai;
+  const offline = selectedProvider === 'offline';
+  keyInput.required = ai && !offline;
+  keyInput.disabled = !loaded || !ai || offline;
+  for (const id of ['api-key-label', 'api-key', 'saved-key-preview', 'get-api-key']) document.getElementById(id).hidden = offline;
   for (const input of moduleInputs.values()) input.disabled = !loaded;
   hubModelInput.disabled = !loaded || !ai || !modules.hubSuggestions;
   promptInput.disabled = !loaded || !ai || !modules.aiExtraction;
   resetPromptButton.disabled = !loaded || !ai || !modules.aiExtraction;
   testButton.disabled = !loaded || !ai || !modules.aiExtraction || !!connectionController;
-  deleteButton.disabled = !loaded || !ai;
+  deleteButton.disabled = !loaded || !ai || offline;
 }
 function connectionMessage(text, state = '') {
   connectionStatus.textContent = text; connectionStatus.dataset.state = state;
@@ -196,7 +202,7 @@ function validatePrompt() {
 }
 function validateSettings(settings) {
   if (settings.modules?.aiExtraction !== false) validatePrompt();
-  if (!settings.apiKey) throw new Error('Wpisz klucz API dostawcy ' + aiProvider(settings.provider).name + '.');
+  if (settings.provider !== 'offline' && !settings.apiKey) throw new Error('Wpisz klucz API dostawcy ' + aiProvider(settings.provider).name + '.');
   if (!/^[a-zA-Z0-9][a-zA-Z0-9._:/-]{0,127}$/.test(settings.model)) throw new Error('Wpisz poprawny identyfikator modelu.');
 }
 testButton.addEventListener('click', async () => {
@@ -205,7 +211,7 @@ testButton.addEventListener('click', async () => {
   try { validateSettings(settings); } catch (error) { connectionMessage(error.message, 'error'); return; }
   const id = ++connectionRun, controller = new AbortController(); connectionController = controller;
   testButton.disabled = true; testButton.textContent = 'Sprawdzanie…'; testButton.setAttribute('aria-busy', 'true');
-  connectionMessage('Łączenie z ' + aiProvider(settings.provider).name + ' i sprawdzanie odpowiedzi modelu…', 'pending');
+  connectionMessage(settings.provider === 'offline' ? 'Sprawdzanie przykładowej odpowiedzi offline…' : 'Łączenie z ' + aiProvider(settings.provider).name + ' i sprawdzanie odpowiedzi modelu…', 'pending');
   const started = performance.now(), timer = setTimeout(() => controller.abort(), 45000);
   try {
     const result = await parseWithAI('loading: PL, 00-001, Warszawa\nunloading: DE, 10115, Berlin', settings, controller.signal, text => {
@@ -215,7 +221,7 @@ testButton.addEventListener('click', async () => {
     if (result.points.length !== 2) throw new Error('Model odpowiedział, ale nie rozpoznał dwóch punktów przykładowej trasy. Spróbuj ponownie lub zmień model.');
     const elapsed = ((performance.now() - started) / 1000).toLocaleString('pl-PL', {minimumFractionDigits: 1, maximumFractionDigits: 1});
     const checkedAt = new Date().toLocaleTimeString('pl-PL');
-    connectionMessage('✓ Połączenie działa. ' + aiProvider(settings.provider).name + ' · ' + settings.model + ': poprawny format odpowiedzi z 2 punktami. Czas: ' + elapsed + ' s. Sprawdzono o ' + checkedAt + '. Zapisz ustawienia, jeśli je zmieniono.', 'success');
+    connectionMessage((settings.provider === 'offline' ? '✓ Test offline działa — bez połączenia z API. ' : '✓ Połączenie działa. ') + aiProvider(settings.provider).name + ' · ' + settings.model + ': poprawny format odpowiedzi z 2 punktami. Czas: ' + elapsed + ' s. Sprawdzono o ' + checkedAt + '. Zapisz ustawienia, jeśli je zmieniono.', 'success');
   } catch (error) {
     if (id === connectionRun) connectionMessage(error.name === 'AbortError' ? 'Przekroczono czas oczekiwania (45 s). Spróbuj ponownie lub wybierz innego dostawcę.' : error.message, 'error');
   } finally {
@@ -233,7 +239,7 @@ form.addEventListener('submit', async event => {
     if (settings.modules.aiExtraction) validatePrompt();
     if (settings.mode === 'ai') validateSettings(settings);
     saveButton.disabled = true;
-    await chrome.storage.local.set({routeSettings: {mode: settings.mode, provider: settings.provider, profiles: settings.profiles, customPrompt: settings.customPrompt, hubModel: settings.hubModel, hubProvider: settings.hubProvider, modules: settings.modules}});
+    await chrome.storage.local.set({routeSettings: {mode: settings.mode, provider: settings.provider, profiles: settings.profiles, customPrompt: settings.customPrompt, hubModel: settings.hubModel, hubProvider: settings.hubProvider, strategy: settings.strategy, modules: settings.modules}});
     savedProfiles = JSON.parse(JSON.stringify(settings.profiles));
     promptStatus.textContent = settings.customPrompt === null ? 'Zapisano instrukcję domyślną.' : 'Zapisano Twoją instrukcję — będzie używana przy każdej analizie AI.';
     updateSavedKeyPreview();
@@ -250,7 +256,7 @@ deleteButton.addEventListener('click', async () => {
     const saved = await readRouteSettings();
     saved.profiles[deletingProvider].apiKey = '';
     const mode = saved.provider === deletingProvider ? 'local' : saved.mode;
-    await chrome.storage.local.set({routeSettings: {mode, provider: saved.provider, profiles: saved.profiles, customPrompt: saved.customPrompt, hubModel: saved.hubModel, hubProvider: saved.hubProvider, modules: saved.modules}});
+    await chrome.storage.local.set({routeSettings: {mode, provider: saved.provider, profiles: saved.profiles, customPrompt: saved.customPrompt, hubModel: saved.hubModel, hubProvider: saved.hubProvider, strategy: saved.strategy, modules: saved.modules}});
     profiles[deletingProvider].apiKey = '';
     savedProfiles[deletingProvider].apiKey = '';
     if (selectedProvider === deletingProvider) { keyInput.value = ''; form.elements.mode.value = 'local'; }
@@ -266,6 +272,7 @@ deleteButton.addEventListener('click', async () => {
     const settings = await readRouteSettings();
     for (const [id, input] of moduleInputs) input.checked = settings.modules[id];
     hubModelInput.value = settings.hubModel;
+    hubStrategyInput.value = settings.strategy; updateHubPrompt();
     promptInput.value = getAiRoutePrompt(settings);
     promptStatus.textContent = settings.customPrompt === null ? 'Używana jest instrukcja domyślna.' : 'Używana jest Twoja zapisana instrukcja.';
     profiles = settings.profiles;
@@ -275,3 +282,9 @@ deleteButton.addEventListener('click', async () => {
     loaded = true; showProvider(); updateHubModels(); saveButton.disabled = false;
   } catch { settingsStatus.textContent = 'Nie udało się odczytać ustawień. Otwórz tę stronę ponownie.'; }
 })();
+
+chrome.storage.local.get('mapApiKey').then(saved=>{document.getElementById('map-api-key').value=saved.mapApiKey || '';}).catch(()=>{});
+document.getElementById('save-map-key').addEventListener('click',async()=>{
+  const status=document.getElementById('map-key-status');
+  try {await chrome.storage.local.set({mapApiKey:document.getElementById('map-api-key').value.trim()});status.textContent='Zapisano klucz mapy.';} catch {status.textContent='Nie udało się zapisać klucza.';}
+});

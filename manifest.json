@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Trasa do Maps — dla spedytora",
-  "version": "1.7.1",
+  "name": "Route Planner",
+  "version": "1.8.2",
   "description": "Zamienia tekst zlecenia transportowego w edytowalne punkty trasy Google Maps.",
   "minimum_chrome_version": "102",
   "permissions": [
@@ -13,17 +13,30 @@
     "service_worker": "src/background.js"
   },
   "action": {
-    "default_title": "Trasa do Maps",
+    "default_title": "Route Planner",
     "default_popup": "popup.html"
   },
   "host_permissions": [
     "https://generativelanguage.googleapis.com/*",
     "https://api.openai.com/*",
     "https://api.groq.com/*",
-    "https://openrouter.ai/*"
+    "https://openrouter.ai/*",
+    "https://api.geoapify.com/*",
+    "https://maps.geoapify.com/*"
   ],
   "options_ui": {
     "page": "options.html",
     "open_in_tab": true
-  }
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://my.timocom.com/*"
+      ],
+      "js": [
+        "src/modules/timocom/content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
 }

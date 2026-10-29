@@ -1,6 +1,6 @@
 # File and function map
 
-This map describes the Unreleased modularization branch. The initial flat-layout snapshot remains in tag v1.5.0. Root HTML URLs are preserved so existing links and context-menu flows continue to work.
+This map describes the modular structure of Route Planner. The initial flat-layout snapshot remains in tag v1.5.0. Root HTML URLs are preserved so existing links and context-menu flows continue to work.
 
 ## `src/background.js`
 
@@ -115,3 +115,15 @@ See AGENTS.md: separate folder, documented entry points, explicit settings toggl
 Service modules validate data and issue provider requests; the popup controller owns editable route state and DOM. Optional features do not own or overwrite local routes. Disabling a feature cancels/discards active work through the settings-change listeners. Postal lookup off means copy formats the existing points without network calls. Hub suggestions off hides its endpoint controls/results. AI extraction off hides its button and rejects the keyboard/API path. The disabled postal experiment rejects direct-page execution.
 
 Root HTML pages deliberately remain at the same URLs. The background worker path is explicitly updated in the manifest. This is a no-bundler extension: ordered local script tags establish dependencies, with the module registry loaded before settings.
+
+## `src/modules/suggestion-map/`
+
+Leaflet renderer, Geoapify geocoding/driving-distance adapter and bundled orientation data. `SuggestionMap.update/open/close/highlight/resetDistance` manage lifecycle and incremental rendering; `MapLocationValidation.expected/parameters/matches` enforce the address contract; `addMapContext` manages zoom-aware borders, cities and parking labels. See the module README and `CONTEXT-DATA.md`.
+
+## `src/modules/recognition-history/`
+
+`history.js` provides per-profile IndexedDB raw-input capture and list/update/remove/clear operations. `history-ui.js` renders redaction and export controls in `history.html`. `examples.json` contains synthetic parser examples, never real history. Only explicit AI recognition captures input; model output is not exported.
+
+## `src/modules/timocom/`
+
+`content.js` reads the current offer's country/locality fields, scopes map buttons and observes SPA updates. `bridge.js` validates content-script messages and opens fixed extension/Google Maps destinations. `openReview` stores a session handoff and the popup imports ordered points directly. The registry toggle controls availability; no AI request is used for import.
