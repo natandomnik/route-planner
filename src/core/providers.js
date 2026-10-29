@@ -1,6 +1,12 @@
 'use strict';
 // Fixed endpoints keep each provider's key confined to its own service.
 const AI_PROVIDERS = Object.freeze({
+  offline: {
+    name: 'Offline — model testowy',
+    models: [['offline/demo', 'Demo · Promień / Korytarz']],
+    note: 'Przykładowe odpowiedzi do testowania wyglądu. Nie analizuje rzeczywistej trasy. Działa także dla sugestii, niezależnie od ich modelu.',
+    privacy: 'Bez internetu i klucza API. Żaden tekst nie jest wysyłany.'
+  },
   gemini: {
     name: 'Google Gemini', keyUrl: 'https://aistudio.google.com/apikey',
     models: [['gemini-3.1-flash-lite', 'Gemini 3.1 Flash-Lite · lekki']],

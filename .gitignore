@@ -42,3 +42,8 @@ backups/
 Thumbs.db
 .idea/
 .vscode/
+
+# Private recognition exports
+route-planner-history*.json
+route-planner-confirmed*.json
+route-planner-parser-review*.json

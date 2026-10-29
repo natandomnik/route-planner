@@ -25,3 +25,10 @@ Prefer a reviewed revert commit for published changes. To temporarily run the pr
 ## Enforcement
 
 AGENTS.md and PR review document the owner's no-merge rule. Configure GitHub branch protection/rulesets when the account plan permits private-repository protection. If server-side protection is unavailable, state that limitation explicitly; documentation is not a technical access control.
+
+
+## Downloadable package
+
+Run `python3 scripts/package-release.py` after validation. It builds `dist/route-planner-X.Y.Z.zip` and a SHA-256 checksum from an explicit runtime-file allow-list. The archive has `manifest.json` at its root; users extract it and choose **Load unpacked** in Chrome. Do not distribute `node_modules`, tests, credentials, browser state or real history exports. Upload both ZIP and checksum to the GitHub release.
+
+When the owner authorizes publication without authorizing a merge, tag the validated feature-branch commit and attach the package to that release. This does not authorize changing `main`; state the release branch in the release notes. Never move an existing tag.

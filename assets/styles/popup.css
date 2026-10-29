@@ -137,3 +137,51 @@ legend { font-weight: 600; padding: 0 6px; }
 .hub-chip strong { font-size: 10px; white-space: nowrap; color: var(--route-muted); }
 .hub-message { font-size: 11px; color: var(--route-muted); }
 @media (prefers-reduced-motion: reduce) { .hub-toggle[aria-busy="true"]::after { animation: none; } }
+:root { --hub-route-bg:#edf1fb; --hub-route-ink:#354b7a; --hub-hub-bg:#f1ecf7; --hub-hub-ink:#614377; --hub-exit-bg:#fbf0db; --hub-exit-ink:#775014; }
+.route-popup h1 { font-size:25px; letter-spacing:-.7px; }
+.maps-actions { display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+.maps-label { font-size:12px; color:var(--route-muted); }
+.maps-actions button { flex:1; font-size:12px; }
+.maps-new-window { background:var(--route-tint); color:var(--route-ink); border:1px solid var(--route-line); }
+.result-controls { display:flex; align-items:center; gap:8px; }
+.strategy-switch { display:inline-flex; gap:2px; padding:3px; background:var(--route-tint); border:1px solid var(--route-line); border-radius:5px; }
+.strategy-switch button { padding:5px 8px; font-size:11px; color:var(--route-muted); background:transparent; }
+.strategy-switch button[aria-pressed="true"] { background:var(--route-ink); color:var(--route-paper); }
+#history-actions { font-size:11px; margin:8px 0; }
+.hub-strategy { flex-basis:100%; font-size:10px; color:var(--route-muted); margin-bottom:2px; }
+.hub-chip { position:relative; align-items:stretch; padding:0; gap:0; overflow:hidden; }
+.hub-chip strong { padding:2px 4px; border-radius:3px; }
+.hub-chip[data-category="approach"] strong { background:var(--route-tint); color:var(--route-ink); }
+.hub-chip[data-category="route"] strong { background:var(--hub-route-bg); color:var(--hub-route-ink); }
+.hub-chip[data-category="hub"] strong { background:var(--hub-hub-bg); color:var(--hub-hub-ink); }
+.hub-chip[data-category="exit"] strong { background:var(--hub-exit-bg); color:var(--hub-exit-ink); }
+.hub-chip-copy { display:flex; align-items:center; gap:5px; min-width:0; padding:9px 6px 9px 10px; font-size:11px; text-align:left; background:transparent; color:inherit; border-radius:0; overflow-wrap:anywhere; }
+.hub-chip-copy:hover:not(:disabled) { background:var(--route-tint); }
+.hub-distance { font-size:10px; white-space:nowrap; }
+.hub-map-link { display:grid; place-items:center; position:relative; flex-shrink:0; min-width:32px; padding:7px; color:var(--route-muted); text-decoration:none; border-left:1px solid var(--route-line); }
+.hub-map-arrow { position:absolute; inset:0; display:grid; place-items:center; visibility:hidden; font-size:17px; }
+.hub-map-link:hover, .hub-map-link:focus-visible { background:var(--route-tint); color:var(--route-ink); }
+.hub-map-link:hover .hub-kilometers, .hub-map-link:focus-visible .hub-kilometers { visibility:hidden; }
+.hub-map-link:hover .hub-map-arrow, .hub-map-link:focus-visible .hub-map-arrow { visibility:visible; }
+.hub-chip-copy:focus-visible, .hub-map-link:focus-visible { outline:2px solid var(--route-ink); outline-offset:-2px; }
+.hub-chip.is-copied::after { content:'✓ Skopiowano'; position:absolute; inset:0; display:grid; place-items:center; border-radius:inherit; background:var(--route-tint); color:var(--route-ink); font-size:11px; font-weight:600; pointer-events:none; }
+.route-popup main { display:flex; flex-direction:column; height:100dvh; max-height:100dvh; overflow:visible; }
+.planner-scroll { flex:1; min-height:0; overflow-y:auto; scrollbar-gutter:stable; padding-right:2px; }
+.route-popup .maps-actions { flex-shrink:0; margin-top:0; padding-top:12px; padding-bottom:4px; background:var(--route-paper); border-top:1px solid var(--route-line); }
+@media(min-width:700px) { .route-popup main { height:calc(100dvh - 70px); } }
+@media(min-width:900px) { body.map-open main { height:calc(100dvh - 40px); } }
+/* Empty planner stays compact; populated routes retain the pinned action bar. */
+.route-popup:not(.has-route):not(.map-open) main { height:auto; }
+.route-popup:not(.has-route):not(.map-open) .planner-scroll { flex:0 1 auto; }
+.hub-chip-copy { padding-top:4px; padding-bottom:4px; line-height:1.25; }
+.hub-map-link { padding-top:4px; padding-bottom:4px; line-height:1.25; }
+.hub-chip strong { padding-top:1px; padding-bottom:1px; line-height:1.25; }
+/* Match settings spacing and leave room for focus rings inside the scrollport. */
+.route-popup main { padding:26px; }
+.planner-scroll { padding:4px 6px 8px 4px; margin:-4px -6px 0 -4px; scroll-padding:8px; }
+.route-popup #source { display:block; min-height:112px; padding:12px; line-height:1.5; max-height:50dvh; overflow:auto; }
+.route-popup .section-head { flex-wrap:wrap; }
+.route-popup .result-controls { margin-left:auto; }
+.route-popup header > div { min-width:0; }
+@media(max-width:550px) { .route-popup main { padding:20px; } }
+.route-popup .point input { font-family:inherit; font-size:14px; line-height:1.5; }

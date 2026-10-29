@@ -75,3 +75,10 @@ for (const provider of ['gemini','openai','groq','openrouter']) test(provider+' 
  assert.equal(provider==='gemini'?sent.systemInstruction.parts[0].text:sent.messages[0].content,customPrompt);
  assert.equal(ctx.normalizeRouteSettings({...settings,provider:'groq'}).customPrompt,customPrompt);
 });
+
+test('suggestion strategy defaults safely and survives normalization',()=>{
+ const ctx=context();
+ assert.equal(ctx.normalizeRouteSettings({}).strategy,'radius');
+ assert.equal(ctx.normalizeRouteSettings({strategy:'unknown'}).strategy,'radius');
+ assert.equal(ctx.normalizeRouteSettings({strategy:'corridor'}).strategy,'corridor');
+});
