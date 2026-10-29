@@ -1,6 +1,6 @@
 # TimoCom route actions
 
-Adds two isolated buttons (`Route Planner ↗` and `Google Maps ↗`) immediately below the offer map on `https://my.timocom.com/*`: open the current route in Route Planner or Google Maps. This optional module is controlled by `routeSettings.modules.timocom` in the common settings registry (enabled by default).
+Adds two isolated buttons (`Road Planner ↗` and `Google Maps ↗`) immediately below the offer map on `https://my.timocom.com/*`: open the current route in Road Planner or Google Maps. This optional module is controlled by `routeSettings.modules.timocom` in the common settings registry (enabled by default).
 
 ## Entry points and functions
 

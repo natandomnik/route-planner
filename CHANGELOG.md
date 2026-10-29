@@ -4,6 +4,18 @@ Versions follow semantic versioning. Dates use Europe/Warsaw. Commit messages fo
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-10-29
+
+### Changed
+
+- Rename the extension to Road Planner in the manifest, toolbar, planner header, page titles, TimoCom action and current engineering documentation.
+- Rename the development package and downloadable ZIP/checksum assets to `road-planner`.
+- Preserve existing settings, IndexedDB history, internal message identifiers, historical releases and repository URLs for compatibility.
+
+### Validation
+
+- Extension syntax/assets, 63 unit tests and nine mocked browser suites passed. No live provider requests were used.
+
 ## [1.8.0] - 2026-10-29
 
 ### Added

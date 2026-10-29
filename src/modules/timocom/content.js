@@ -61,7 +61,7 @@
     `;
     const actions=document.createElement('div');actions.className='actions';
     const status=document.createElement('div');status.className='status';status.setAttribute('role','status');
-    for(const [target,label] of [['planner','Route Planner'],['google','Google Maps']]) {
+    for(const [target,label] of [['planner','Road Planner'],['google','Google Maps']]) {
       const button=document.createElement('button');button.type='button';button.textContent=label;
       button.title=label+' — otwórz w nowej karcie';
       const arrow=document.createElement('span');arrow.className='external-arrow';arrow.textContent='↗';arrow.setAttribute('aria-hidden','true');button.append(arrow);

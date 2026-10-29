@@ -8,7 +8,7 @@ root = Path(__file__).resolve().parent.parent
 version = json.loads((root / 'manifest.json').read_text())['version']
 output = root / 'dist'
 output.mkdir(exist_ok=True)
-archive = output / f'route-planner-{version}.zip'
+archive = output / f'road-planner-{version}.zip'
 # Explicit allow-list: no browser state, exports, dependencies or local workspace files.
 files = [root / name for name in ('manifest.json', 'popup.html', 'options.html', 'postal-lab.html', 'history.html', 'README.md', 'CHANGELOG.md')]
 for folder in ('src', 'assets'):
@@ -27,5 +27,5 @@ with ZipFile(archive) as bundle:
     for name in entries:
         assert name in bundle.namelist(), name
 checksum = hashlib.sha256(archive.read_bytes()).hexdigest()
-(output / f'route-planner-{version}.sha256').write_text(f'{checksum}  {archive.name}\n')
+(output / f'road-planner-{version}.sha256').write_text(f'{checksum}  {archive.name}\n')
 print(f'Built {archive.name}: {len(files)} runtime/documentation files; SHA-256 {checksum}')

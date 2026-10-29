@@ -1,6 +1,6 @@
 {
-  "name": "route-planner",
-  "version": "1.8.0",
+  "name": "road-planner",
+  "version": "1.8.1",
   "private": true,
   "description": "Private Chromium freight route preparation extension",
   "engines": {
