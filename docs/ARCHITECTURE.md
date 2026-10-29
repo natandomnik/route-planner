@@ -1,6 +1,6 @@
 # File and function map
 
-This map describes the modular structure of Road Planner. The initial flat-layout snapshot remains in tag v1.5.0. Root HTML URLs are preserved so existing links and context-menu flows continue to work.
+This map describes the modular structure of Route Planner. The initial flat-layout snapshot remains in tag v1.5.0. Root HTML URLs are preserved so existing links and context-menu flows continue to work.
 
 ## `src/background.js`
 

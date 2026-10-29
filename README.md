@@ -1,8 +1,8 @@
-# Road Planner
+# Route Planner
 
 Private Chrome/Chromium Manifest V3 extension for freight forwarders. Turns an informal transport message into an editable route, opens Google Maps in the current tab, and copies a compact list of route addresses.
 
-**Current stable version: 1.8.1** ([release](https://github.com/natandomnik/Trasa-do-Maps/releases/tag/v1.8.1)). The product interface is Polish; development documentation and built-in LLM instructions are English. Polish development requests are interpreted as English implementation requirements; owner-facing replies remain Polish. Original route data and saved custom prompts are preserved.
+**Current stable version: 1.8.2** ([release](https://github.com/natandomnik/Trasa-do-Maps/releases/tag/v1.8.2)). The product interface is Polish; development documentation and built-in LLM instructions are English. Polish development requests are interpreted as English implementation requirements; owner-facing replies remain Polish. Original route data and saved custom prompts are preserved.
 
 ## Features
 
@@ -12,7 +12,7 @@ Private Chrome/Chromium Manifest V3 extension for freight forwarders. Turns an i
 - Clipboard export: one address per line, with optional Groq postal-code research.
 - Radius/corridor carrier-search areas around A/B using an independently selected provider/model.
 - Interactive Leaflet map, driving distances, local logistics/parking context and incremental suggestion markers.
-- TimoCom offer buttons that open the ordered route in Road Planner or Google Maps.
+- TimoCom offer buttons that open the ordered route in Route Planner or Google Maps.
 - Optional local raw-input history and export for parser improvement, plus an offline demo provider.
 - Isolated postal-code research experiment in settings.
 

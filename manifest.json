@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Road Planner",
-  "version": "1.8.1",
+  "name": "Route Planner",
+  "version": "1.8.2",
   "description": "Zamienia tekst zlecenia transportowego w edytowalne punkty trasy Google Maps.",
   "minimum_chrome_version": "102",
   "permissions": [
@@ -13,7 +13,7 @@
     "service_worker": "src/background.js"
   },
   "action": {
-    "default_title": "Road Planner",
+    "default_title": "Route Planner",
     "default_popup": "popup.html"
   },
   "host_permissions": [

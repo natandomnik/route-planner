@@ -4,6 +4,18 @@ Versions follow semantic versioning. Dates use Europe/Warsaw. Commit messages fo
 
 ## [Unreleased]
 
+## [1.8.2] - 2026-10-29
+
+### Changed
+
+- Restore the final product name Route Planner and the `route-planner` package/download names at the owner's request.
+- Consolidate all 1.8.x map, corridor, history, offline demo and TimoCom improvements into `main` through the approved pull request.
+- Preserve existing settings, history, internal identifiers and historical release tags.
+
+### Validation
+
+- Extension syntax/assets, 63 unit tests and nine mocked browser suites passed. No live provider calls were made.
+
 ## [1.8.1] - 2026-10-29
 
 ### Changed

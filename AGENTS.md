@@ -2,7 +2,7 @@
 
 ## Project identity and language workflow
 
-- The product name is **Road Planner**. Use this name in the extension manifest, page titles, documentation and new feature descriptions.
+- The product name is **Route Planner**. Use this name in the extension manifest, page titles, documentation and new feature descriptions.
 - The owner writes development requests in Polish. Interpret their requirements in English before implementation, preserving intent, constraints and acceptance criteria. Do not require the owner to provide an English translation.
 - Write agent instructions, technical specifications, engineering documentation, new code comments, commit messages and built-in LLM system instructions in English.
 - Respond to the owner in Polish and keep product UI messages in Polish unless explicitly requested otherwise.

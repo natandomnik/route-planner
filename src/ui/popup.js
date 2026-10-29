@@ -109,7 +109,7 @@ function titleEndpoint(value) {
 function updateOpen() {
   document.title = points.length >= 2 && points[0].trim() && points.at(-1).trim() && !dirty
     ? titleEndpoint(points[0]) + ' > ' + titleEndpoint(points.at(-1))
-    : 'Road Planner';
+    : 'Route Planner';
   document.body.classList.toggle('has-route', points.length > 0 || !!source.value.trim());
   document.querySelector('.maps-actions').hidden = resultBox.hidden;
   paintHubSuggestions();
